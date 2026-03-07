@@ -1,8 +1,0 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local Knit = require(ReplicatedStorage.Packages.Knit)
-
-local Hitbox = Knit.CreateService{
-    Name = "HitboxService",
-    Client = {}
-}
