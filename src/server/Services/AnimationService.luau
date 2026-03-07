@@ -51,6 +51,7 @@ function AnimationService:KnitInit()
 end
 
 function AnimationService:Play(character: Model, animationId: string)
+    print("Playing...")
     local animator = getAnimator(character)
     if not animator then return nil end
 

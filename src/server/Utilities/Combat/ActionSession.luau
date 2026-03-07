@@ -9,12 +9,14 @@ local AnimationService = Knit.GetService("AnimationService")
 -- Utils
 local TableUtils = require(ReplicatedStorage.Shared.Utils.TableUtils)
 
-local Types = require(script.Parent.Types)
-
-type AttackSessionParams = Types.AttackSessionParams
-
 local AttackSession = {}
 AttackSession.__index = AttackSession
+
+export type AttackSessionParams = {
+    model: Model,
+    moveName: string,
+    actionType: "Cooldown",
+}
 
 function AttackSession.new(params: AttackSessionParams)
     assert(params.attacker, "Attacker is required")
@@ -49,4 +51,6 @@ function AttackSession:StopAnimation(animation: Animation)
     AnimationService:StopAnimation(animation)
 end
 
-return AttackSession
+export type AttackSessionType = typeof(AttackSession.new())
+
+return AttackSession :: AttackSessionType
