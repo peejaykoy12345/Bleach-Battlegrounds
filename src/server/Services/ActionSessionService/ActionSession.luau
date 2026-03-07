@@ -19,11 +19,13 @@ AttackSession.__index = AttackSession
 function AttackSession.new(params: AttackSessionParams)
     assert(params.attacker, "Attacker is required")
     assert(params.moveName, "MoveName is required")
+    assert(params.actionType, "ActionType is required")
 
     local self = setmetatable({}, AttackSession)
 
     self.attacker = params.attacker
     self.moveName = params.moveName
+    self.actionType = params.actionType
 
     self.animations = {}
 

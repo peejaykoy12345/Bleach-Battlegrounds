@@ -1,16 +1,12 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GoodSignal = require(ReplicatedStorage.Packages.GoodSignal)
-local Knit = require(ReplicatedStorage.Packages.Knit)
 
-local AsyncTimerService = Knit.CreateService{
-    Name = "AsyncTimerService",
-    Client = {}
-}
-AsyncTimerService.__index = AsyncTimerService
+local AsyncTimer = {}
+AsyncTimer.__index = AsyncTimer
 
-function AsyncTimerService.new(duration)
-    local self = setmetatable({}, AsyncTimerService)
+function AsyncTimer.new(duration)
+    local self = setmetatable({}, AsyncTimer)
     self.duration = duration or 10
     self.running = false
     self.endTime = 0
@@ -20,7 +16,7 @@ function AsyncTimerService.new(duration)
     return self
 end
 
-function AsyncTimerService:OnTimeout()
+function AsyncTimer:OnTimeout()
     print("OnTimeout")
     if self.running and tick() >= self.endTime then
         self.timeout:Fire()
@@ -29,7 +25,7 @@ function AsyncTimerService:OnTimeout()
     end
 end
 
-function AsyncTimerService:Start()
+function AsyncTimer:Start()
     self.running = true
     self.endTime = tick() + self.duration
     if self.handle then task.cancel(self.handle) end
@@ -38,13 +34,13 @@ function AsyncTimerService:Start()
     end)
 end
 
-function AsyncTimerService:TryStart()
+function AsyncTimer:TryStart()
     if not self.running then
         self:Start()
     end
 end
 
-function AsyncTimerService:Extend(extra)
+function AsyncTimer:Extend(extra)
     if not self.running then return end
     self.endTime = self.endTime + extra
     if self.handle then task.cancel(self.handle) end
@@ -54,7 +50,7 @@ function AsyncTimerService:Extend(extra)
     end)
 end
 
-function AsyncTimerService:Stop()
+function AsyncTimer:Stop()
     self.running = false
     if self.handle then
         pcall(task.cancel, self.handle)
@@ -63,7 +59,7 @@ function AsyncTimerService:Stop()
 end
 
 
-function AsyncTimerService:Reset()
+function AsyncTimer:Reset()
     if not self.running then
         self:Start() 
     else
@@ -77,4 +73,6 @@ function AsyncTimerService:Reset()
     end
 end
 
-return AsyncTimerService
+export type AsyncTimer = typeof(AsyncTimer.new())
+
+return AsyncTimer :: AsyncTimer

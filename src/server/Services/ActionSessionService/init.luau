@@ -10,11 +10,11 @@ local ActionSessionService = Knit.CreateService {
 }
 
 function ActionSessionService:KnitStart()
-    
+    self.ActionSession = require(script.ActionSession)
 end
 
 type AttackSessionParams = Types.AttackSessionParams
 
 function ActionSessionService:NewSession(params: AttackSessionParams)
-    
+    return self.ActionSession.new(params)
 end
