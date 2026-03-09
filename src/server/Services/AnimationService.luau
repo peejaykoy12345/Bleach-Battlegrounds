@@ -50,7 +50,13 @@ function AnimationService:KnitInit()
     end)
 end
 
-function AnimationService:Play(character: Model, animationId: string)
+type playOptionsParams = {
+    Priority: number
+}
+
+function AnimationService:Play(character: Model, animationId: string, playOptionsParams: playOptionsParams?)
+    playOptionsParams = playOptionsParams or {}
+
     print("Playing...")
     local animator = getAnimator(character)
     if not animator then return nil end
@@ -69,9 +75,17 @@ function AnimationService:Play(character: Model, animationId: string)
     end
 
     local track = animator:LoadAnimation(cachedAnimations[animationId])
+    if playOptionsParams.Priority then
+        track.Priority = Enum.AnimationPriority["Action" .. tostring(playOptionsParams.Priority)]
+    end
     track:Play()
 
     return track
+end
+
+function AnimationService:StopAnimation(track: AnimationTrack)
+    track:Stop()
+    track:Destroy()
 end
 
 return AnimationService

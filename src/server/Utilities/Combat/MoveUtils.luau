@@ -3,6 +3,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local UtilitiesFolder = ServerScriptService.Server.Utilities
 local CombatUtilities = UtilitiesFolder.Combat
 local Hitbox = require(CombatUtilities.Hitbox)
+local CooldownService = require(ServerScriptService.Server.Services.CooldownService)
 
 local MoveUtils = {}
 
@@ -14,6 +15,14 @@ function MoveUtils:CreateStandardHitbox(config)
 	hitbox.CFrame = config.CFrame or CFrame.new(0, 0, 0)
 	hitbox.Visualizer =  config.VISUALIZER ~= false 
 	return hitbox
+end
+
+function MoveUtils:CanPerformAction(plr: Player, actionName: string): boolean
+	if CooldownService:IsOnCooldown(plr, actionName) then
+		return false
+	end
+
+	return true
 end
 
 return MoveUtils
