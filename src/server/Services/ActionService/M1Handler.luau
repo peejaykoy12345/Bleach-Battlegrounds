@@ -1,4 +1,8 @@
+local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
+
+local MoveUtils = require(ServerScriptService.Server.Utilities.Combat.MoveUtils)
+local BufferInput = require(ServerScriptService.Server.Utilities.BufferInput)
 
 local CharacterFolder = ServerStorage.ServerStorage.Characters
 
@@ -7,7 +11,7 @@ module.__index = module
 
 module.M1Instances = {}
 
-function module:HandleAction(plr: Player, params)
+function module:_HandleM1(plr)
     local module = require(CharacterFolder.Default.Melee)
     
     if self.M1Instances[plr] then
@@ -18,6 +22,19 @@ function module:HandleAction(plr: Player, params)
         }) 
         self.M1Instances[plr]:M1()
     end
+end
+
+function module:HandleAction(plr: Player, params)
+    params = params or {}
+
+    if not MoveUtils:CanPerformAction(plr, "M1") then
+        BufferInput:Press(plr, "DefaultM1", function(plr, params)
+            self:_HandleM1(plr)
+        end)
+        return
+    end
+
+    self:_HandleM1(plr)
 end
 
 return module

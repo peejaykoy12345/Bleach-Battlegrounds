@@ -1,3 +1,4 @@
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Packages
@@ -6,9 +7,11 @@ local Knit = require(ReplicatedStorage.Packages.Knit)
 -- Services
 local AnimationService = Knit.GetService("AnimationService")
 local CooldownService = Knit.GetService("CooldownService")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 -- Utils
 local TableUtils = require(ReplicatedStorage.Shared.Utils.TableUtils)
+local BufferInput = require(ServerScriptService.Server.Utilities.BufferInput)
 
 local AttackSession = {}
 AttackSession.__index = AttackSession
@@ -69,8 +72,11 @@ function AttackSession:StopAllAnimations()
     self.animations = {}
 end
 
-function AttackSession:Stop()
-    self:StopAllAnimations()
+function AttackSession:Stop(forcestop: boolean?)
+    if forcestop then
+        self:StopAllAnimations()
+    end
+
     if self.cooldown then
         CooldownService:SetCooldown(self.attacker, self.actionName, self.cooldown.cooldown)
     end
@@ -78,6 +84,12 @@ function AttackSession:Stop()
     if self.hitbox then
         self.hitbox:Stop()
         self.hitbox = nil
+    end
+
+    -- After each action session is stopped, check if there are any buffered inputs to consume
+    local plr = Players:GetPlayerFromCharacter(self.char)
+    if plr then
+        BufferInput.TryConsumeBuffer(plr)
     end
 
     self = nil

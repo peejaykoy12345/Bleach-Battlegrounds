@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local CONFIG = {
@@ -13,6 +14,13 @@ Melee.M1anims = {
     [2] = 116598628098678,
     [3] = 88790772873415,
     [4] = 137132189634903,
+}
+
+Melee.hitAnims = {
+    [1] = 107787809160749,
+    [2] = 84083069819396,
+    [3] = 135412824644606,
+    [4] = 81715699171439,
 }
 
 print(ServerScriptService.Server:GetChildren())
@@ -49,48 +57,68 @@ function Melee:M1()
     if not MoveUtils:CanPerformAction(self.char, "DefaultM1") then return end
     if self.comboCooldown then return end
 
+    local animToPlay = self.animIdToPlay
+
+    if animToPlay > #self.M1anims then return end
+
     local session = ActionSession.new({
         attacker = self.char,
         actionName = "DefaultM1",
         actionType = "Cooldown",
-        cooldown = {cooldown = CONFIG.M1Cooldown}
     })
 
     if not session then return end
 
-    local animToPlay = self.animIdToPlay
+    CooldownService:SetCooldown(self.char, "DefaultM1", CONFIG.M1Cooldown)
 
-    if animToPlay > #self.M1anims then
+    self.animIdToPlay += 1
+    self.timer:Reset()
+
+    if self.animIdToPlay > #self.M1anims then
         self.comboCooldown = true
         task.delay(CONFIG.ComboCooldown, function()
             self.animIdToPlay = 1
             self.comboCooldown = false
         end)
-        return
     end
 
-    CooldownService:SetCooldown(self.char, "DefaultM1", CONFIG.M1Cooldown)
-
     local track: AnimationTrack = session:PlayAndAddAnimation(self.char, self.M1anims[animToPlay], {Priority = 4})
-    
-    track:GetMarkerReachedSignal("Hit"):Connect(function()
-        local hitbox = MoveUtils:CreateStandardHitbox({
+
+    local hitboxFired = false
+
+    local function fireHitbox()
+        if hitboxFired then return end
+        hitboxFired = true
+
+        local hb = MoveUtils:CreateStandardHitbox({
             CFrame = self.hrp.CFrame * CFrame.new(0, 0, -3)
         })
-        hitbox:Start()
-        hitbox.Touched:Connect(function(hitChar)
+        hb:Start()
+
+        local updateConn = RunService.Heartbeat:Connect(function()
+            hb.CFrame = self.hrp.CFrame * CFrame.new(0, 0, -3)
+        end)
+
+        hb.Touched:Connect(function(hitChar)
             if hitChar == self.char then return end
             hitChar.Humanoid:TakeDamage(10)
+            AnimationService:Play(hitChar, self.hitAnims[animToPlay])
         end)
-        session.hitbox = hitbox
-    end)
+
+        session.hitbox = hb
+
+        -- disconnect when hitbox stops
+        task.delay(0.2, function()
+            updateConn:Disconnect()
+        end)
+    end
+
+    track:GetMarkerReachedSignal("Hit"):Connect(fireHitbox)
+    task.delay(.275, fireHitbox)
 
     track.Ended:Connect(function()
         session:Stop()
     end)
-
-    self.animIdToPlay += 1
-    self.timer:Reset()
 end
 
 return Melee
