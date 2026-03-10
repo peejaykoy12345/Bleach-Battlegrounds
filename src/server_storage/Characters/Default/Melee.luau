@@ -1,6 +1,15 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Debris = game:GetService("Debris")
 local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
+
+local UtilitiesFolder = ServerScriptService.Server.Utilities
+local AnimationService = require(ServerScriptService.Server.Services.AnimationService)
+local CooldownService = require(ServerScriptService.Server.Services.CooldownService)
+local MoveUtils = require(UtilitiesFolder.Combat.MoveUtils)
+local Velocity = require(UtilitiesFolder.Combat.Velocity)
+local ActionSession = require(UtilitiesFolder.Combat.ActionSession)
+local AsyncTimer = require(UtilitiesFolder.AsyncTimer)
+local SoundManagerService = require(ServerScriptService.Server.Services.SoundManagerService)
 
 local CONFIG = {
     M1Cooldown = 0.3,
@@ -16,6 +25,13 @@ Melee.M1anims = {
     [4] = 137132189634903,
 }
 
+Melee.SwingSFX = {
+    [1] = 686669695,
+    [2] = 686669695,
+    [3] = 686669695,
+    [4] = 686669695,
+}
+
 Melee.hitAnims = {
     [1] = 107787809160749,
     [2] = 84083069819396,
@@ -23,14 +39,12 @@ Melee.hitAnims = {
     [4] = 81715699171439,
 }
 
-print(ServerScriptService.Server:GetChildren())
-
-local UtilitiesFolder = ServerScriptService.Server.Utilities
-local AnimationService = require(ServerScriptService.Server.Services.AnimationService)
-local CooldownService = require(ServerScriptService.Server.Services.CooldownService)
-local MoveUtils = require(UtilitiesFolder.Combat.MoveUtils)
-local ActionSession = require(UtilitiesFolder.Combat.ActionSession)
-local AsyncTimer = require(UtilitiesFolder.AsyncTimer)
+Melee.hitSFX = {
+    [1] = 281156569,
+    [2] = 281156569,
+    [3] = 281156569,
+    [4] = 281156569,
+}
 
 export type params = {
     char: Model,
@@ -51,6 +65,24 @@ function Melee.new(params: params)
     self.comboCooldown = false
 
     return self
+end
+
+function Melee:ApplyVelocity(enemy: Model)
+    local char = self.char
+    local hrp = self.hrp
+    local ehrp = enemy:FindFirstChild("HumanoidRootPart")
+    if not ehrp then warn(`No hrp for {enemy.Name}`) return end
+
+    local Mass1, Mass2 = MoveUtils:GetModelMass(char), MoveUtils:GetModelMass(enemy)
+
+    local function createBv(parent, vel)
+        local bv = Velocity.CreateBV(parent, Vector3.new(Mass1 + 30000, 0, Mass1 + 30000))
+        bv.Velocity = vel
+        Debris:AddItem(bv, .075)
+    end
+
+    createBv(hrp, hrp.CFrame.LookVector * 14)
+    createBv(ehrp, hrp.CFrame.LookVector * 7)
 end
 
 function Melee:M1()
@@ -101,8 +133,16 @@ function Melee:M1()
 
         hb.Touched:Connect(function(hitChar)
             if hitChar == self.char then return end
+            local ehrp = hitChar:FindFirstChild("HumanoidRootPart")
+            if not ehrp then return end
+
             hitChar.Humanoid:TakeDamage(10)
             AnimationService:Play(hitChar, self.hitAnims[animToPlay])
+
+            self:ApplyVelocity(hitChar)
+            MoveUtils:FacePlayer(ehrp, self.hrp)
+
+            SoundManagerService:Play(self.hitSFX[animToPlay], hitChar)
         end)
 
         session.hitbox = hb
@@ -114,7 +154,9 @@ function Melee:M1()
     end
 
     track:GetMarkerReachedSignal("Hit"):Connect(fireHitbox)
-    task.delay(.275, fireHitbox)
+    task.delay(.275, fireHitbox) -- In case marker doesnt trigger
+
+    SoundManagerService:Play(self.SwingSFX[animToPlay], self.char)
 
     track.Ended:Connect(function()
         session:Stop()

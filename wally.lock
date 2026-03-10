@@ -3,6 +3,21 @@
 registry = "test"
 
 [[package]]
+name = "chipioindustries/rapscallion"
+version = "1.0.4"
+dependencies = [["Llama", "freddylist/llama@1.1.1"]]
+
+[[package]]
+name = "chipioindustries/remotes"
+version = "2.0.0"
+dependencies = [["Llama", "freddylist/llama@1.1.1"], ["Rapscallion", "chipioindustries/rapscallion@1.0.4"], ["Signal", "chipioindustries/signal@1.2.0"]]
+
+[[package]]
+name = "chipioindustries/signal"
+version = "1.2.0"
+dependencies = []
+
+[[package]]
 name = "egomoose/raycast-helper"
 version = "3.0.1"
 dependencies = []
@@ -13,9 +28,14 @@ version = "4.0.0"
 dependencies = []
 
 [[package]]
+name = "freddylist/llama"
+version = "1.1.1"
+dependencies = []
+
+[[package]]
 name = "jhoray/bleach-game"
 version = "0.1.0"
-dependencies = [["GoodSignal", "stravant/goodsignal@0.2.1"], ["Knit", "sleitnick/knit@1.7.0"], ["RaycastHelper", "egomoose/raycast-helper@3.0.1"], ["ProfileStore", "vyon/profilestore@1.0.3"]]
+dependencies = [["GoodSignal", "stravant/goodsignal@0.2.1"], ["Knit", "sleitnick/knit@1.7.0"], ["RaycastHelper", "egomoose/raycast-helper@3.0.1"], ["remotes", "chipioindustries/remotes@2.0.0"], ["ProfileStore", "vyon/profilestore@1.0.3"]]
 
 [[package]]
 name = "sleitnick/comm"

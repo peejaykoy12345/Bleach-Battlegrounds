@@ -12,6 +12,13 @@
       },
       "UI": {
         "$path": "src/UI"
+      },
+      "Assets (New)": {
+        "$className": "Folder",
+        "ClientFX": {
+          "$path": "src/client_fx",
+          "$className": "Folder"
+        }
       }
     },
 
