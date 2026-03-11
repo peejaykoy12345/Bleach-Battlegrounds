@@ -1,4 +1,5 @@
 local Debris = game:GetService("Debris")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
@@ -10,6 +11,7 @@ local Velocity = require(UtilitiesFolder.Combat.Velocity)
 local ActionSession = require(UtilitiesFolder.Combat.ActionSession)
 local AsyncTimer = require(UtilitiesFolder.AsyncTimer)
 local SoundManagerService = require(ServerScriptService.Server.Services.SoundManagerService)
+local ClientFXService = require(ServerScriptService.Server.Services.ClientFXService)
 
 local CONFIG = {
     M1Cooldown = 0.3,
@@ -44,6 +46,10 @@ Melee.hitSFX = {
     [2] = 281156569,
     [3] = 281156569,
     [4] = 281156569,
+}
+
+Melee.Effects = {
+    Hit = ReplicatedStorage.Assets.Effects.Combat.FistHit
 }
 
 export type params = {
@@ -143,6 +149,25 @@ function Melee:M1()
             MoveUtils:FacePlayer(ehrp, self.hrp)
 
             SoundManagerService:Play(self.hitSFX[animToPlay], hitChar)
+
+            ClientFXService:Start(
+                {
+                    Name = "Hit",
+                    Type = "Combat"
+                },
+                {
+                    target = hitChar
+                }
+            )
+
+            ClientFXService:Start({
+                Name = "EmitParticles",
+                Type = "Combat"
+            }, 
+            {
+                parent = hitChar.HumanoidRootPart,
+                particleContainer = self.Effects.Hit
+            })
         end)
 
         session.hitbox = hb
