@@ -19,13 +19,14 @@ function MoveUtils:CreateStandardHitbox(config)
 	return hitbox
 end
 
-function MoveUtils:CanPerformAction(plr: Player, actionName: string, params): boolean
-	local char = plr.Character
+function MoveUtils:CanPerformAction(char: Model, actionName: string, params): boolean
+	params = params or {}
+
 	if StateManager.isActionBlocked(char, params.statesToSkip) then
 		return false
 	end
 
-	if CooldownService:IsOnCooldown(plr, actionName) then
+	if CooldownService:IsOnCooldown(char, actionName) then
 		return false
 	end
 

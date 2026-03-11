@@ -86,13 +86,13 @@ function AttackSession:Start()
     if states then
         if states.sharedStates then
             for _, state in ipairs(states.sharedStates) do
-                StateManager.SetState(self.char, state, true)
+                StateManager.SetState(self.attacker, state, true)
             end
         end
         
         if states.attackerStates then
             for _, state in ipairs(states.attackerStates) do
-                StateManager.SetState(self.char, state, true)
+                StateManager.SetState(self.attacker, state, true)
             end
         end
     end
