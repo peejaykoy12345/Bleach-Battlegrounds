@@ -16,6 +16,10 @@ local ClientFXService = require(ServerScriptService.Server.Services.ClientFXServ
 local CONFIG = {
     M1Cooldown = 0.3,
     ComboCooldown = 1.2,
+    Velocity = {
+        ZAxis = 50, 
+        YAxis = 15,
+    }
 }
 
 local Melee = {}
@@ -138,14 +142,13 @@ function Melee:M1()
         end)
 
         hb.Touched:Connect(function(hitChar)
-            if hitChar == self.char then return end
+            if not MoveUtils:ValidateHit(self.char, hitChar) then return end
+            
             local ehrp = hitChar:FindFirstChild("HumanoidRootPart")
             if not ehrp then return end
 
             hitChar.Humanoid:TakeDamage(10)
             AnimationService:Play(hitChar, self.hitAnims[animToPlay])
-
-            self:ApplyVelocity(hitChar)
             MoveUtils:FacePlayer(ehrp, self.hrp)
 
             SoundManagerService:Play(self.hitSFX[animToPlay], hitChar)
@@ -168,6 +171,17 @@ function Melee:M1()
                 parent = hitChar.HumanoidRootPart,
                 particleContainer = self.Effects.Hit
             })
+
+            if animToPlay == #self.M1anims then
+                MoveUtils:RagdollCharacter(hitChar, 1.5)
+                
+                local cf = self.hrp.CFrame
+                local bv = Velocity.CreateBV(ehrp, Vector3.new(math.huge, math.huge, math.huge))
+                bv.Velocity = (cf.LookVector * CONFIG.Velocity.ZAxis) + (cf.UpVector * CONFIG.Velocity.YAxis)
+                Debris:AddItem(bv, 0.2)
+            else
+                self:ApplyVelocity(hitChar)
+            end
         end)
 
         session.hitbox = hb

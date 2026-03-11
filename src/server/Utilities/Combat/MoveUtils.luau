@@ -5,6 +5,7 @@ local UtilitiesFolder = ServerScriptService.Server.Utilities
 local CombatUtilities = UtilitiesFolder.Combat
 local Hitbox = require(CombatUtilities.Hitbox)
 local CooldownService = require(ServerScriptService.Server.Services.CooldownService)
+local StateManager = require(CombatUtilities.StateManager)
 
 local MoveUtils = {}
 
@@ -45,6 +46,39 @@ function MoveUtils:FacePlayer(enemyRoot: BasePart, attackerRoot: BasePart)
     BodyGyro.CFrame = CFrame.lookAt(enemyRoot.CFrame.Position, attackerRoot.Position + Vector3.new(0, 2, 0))
     BodyGyro.Parent = enemyRoot
     Debris:AddItem(BodyGyro, .35)
+end
+
+function MoveUtils:RagdollCharacter(target: Model, duration: number, ragdollStatus: boolean?)
+	ragdollStatus = ragdollStatus or true
+
+	local RagdollTrigger = target:FindFirstChild("RagdollTrigger")
+	if not RagdollTrigger then
+		warn(`RagdollTrigger not found in {target.Name}`)
+		return
+	end
+
+	RagdollTrigger.Value = ragdollStatus
+	task.delay(duration, function()
+		RagdollTrigger.Value = not ragdollStatus
+	end)
+end
+
+type ValidateHitParams = {
+	StatesToSkip: {[string]: boolean}
+}
+
+function MoveUtils:ValidateHit(attacker, target, params: ValidateHitParams?): boolean
+	params = params or {}
+
+	if attacker == target then
+		return false
+	end
+
+	if StateManager.isCharacterInvincible(target, params.StatesToSkip) then
+		return false
+	end
+
+	return true
 end
 
 return MoveUtils
