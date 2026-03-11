@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")  
 
 -- Packages
 local Knit = require(ReplicatedStorage.Packages.Knit)
@@ -7,11 +8,11 @@ local Knit = require(ReplicatedStorage.Packages.Knit)
 -- Services
 local AnimationService = Knit.GetService("AnimationService")
 local CooldownService = Knit.GetService("CooldownService")
-local ServerScriptService = game:GetService("ServerScriptService")
 
 -- Utils
 local TableUtils = require(ReplicatedStorage.Shared.Utils.TableUtils)
 local BufferInput = require(ServerScriptService.Server.Utilities.BufferInput)
+local StateManager = require(ServerScriptService.Server.Utilities.Combat.StateManager)
 
 local AttackSession = {}
 AttackSession.__index = AttackSession
@@ -20,11 +21,17 @@ type cooldownParams = {
     cooldown: number
 }
 
+type statesParams = {
+    sharedStates: {string},
+    attackerStates: {string},
+}
+
 export type AttackSessionParams = {
     model: Model,
     actionName: string,
     actionType: "Cooldown" | "Misc",
     cooldown: cooldownParams,
+    states: statesParams
 }
 
 function AttackSession.new(params: AttackSessionParams)
@@ -38,6 +45,8 @@ function AttackSession.new(params: AttackSessionParams)
     self.actionName = params.actionName
     self.actionType = params.actionType
     self.cooldown = params.cooldown
+
+    self.states = params.states
 
     self.animations = {}
 
@@ -70,6 +79,23 @@ function AttackSession:StopAllAnimations()
         AnimationService:StopAnimation(anim)
     end
     self.animations = {}
+end
+
+function AttackSession:Start()
+    local states = self.states
+    if states then
+        if states.sharedStates then
+            for _, state in ipairs(states.sharedStates) do
+                StateManager.SetState(self.char, state, true)
+            end
+        end
+        
+        if states.attackerStates then
+            for _, state in ipairs(states.attackerStates) do
+                StateManager.SetState(self.char, state, true)
+            end
+        end
+    end
 end
 
 function AttackSession:Stop(forcestop: boolean?)

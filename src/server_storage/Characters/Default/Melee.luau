@@ -107,9 +107,16 @@ function Melee:M1()
         attacker = self.char,
         actionName = "DefaultM1",
         actionType = "Cooldown",
+        states = {
+            sharedStates = {
+                "Cantuse",
+            },
+        },
     })
 
     if not session then return end
+
+    session:Start()
 
     CooldownService:SetCooldown(self.char, "DefaultM1", CONFIG.M1Cooldown)
 
@@ -166,7 +173,7 @@ function Melee:M1()
             ClientFXService:Start({
                 Name = "EmitParticles",
                 Type = "Combat"
-            }, 
+            },
             {
                 parent = hitChar.HumanoidRootPart,
                 particleContainer = self.Effects.Hit
@@ -178,6 +185,7 @@ function Melee:M1()
                 local cf = self.hrp.CFrame
                 local bv = Velocity.CreateBV(ehrp, Vector3.new(math.huge, math.huge, math.huge))
                 bv.Velocity = (cf.LookVector * CONFIG.Velocity.ZAxis) + (cf.UpVector * CONFIG.Velocity.YAxis)
+
                 Debris:AddItem(bv, 0.2)
             else
                 self:ApplyVelocity(hitChar)
