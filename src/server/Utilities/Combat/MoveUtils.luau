@@ -6,6 +6,7 @@ local CombatUtilities = UtilitiesFolder.Combat
 local Hitbox = require(CombatUtilities.Hitbox)
 local CooldownService = require(ServerScriptService.Server.Services.CooldownService)
 local StateManager = require(CombatUtilities.StateManager)
+local BlockUtils = require(CombatUtilities.BlockUtils)
 
 local MoveUtils = {}
 
@@ -92,11 +93,21 @@ function MoveUtils:ValidateHit(attacker, target, params: ValidateHitParams?): bo
 		return false
 	end
 
+	if RecentHits[target] and RecentHits[target][attacker] then return false end
+
 	if StateManager.isCharacterInvincible(target, params.StatesToSkip) then
 		return false
 	end
 
-	if RecentHits[target] and RecentHits[target][attacker] then return false end
+	local hrp = attacker:FindFirstChild("HumanoidRootPart")
+	if not hrp then
+		return false
+	end
+
+	if params.Block ~= nil and params.Block.Blockable then
+		local blockAngle = params.blockAngle
+		if BlockUtils.IsBlocking(hrp.Position, target, blockAngle) then return false end
+	end
 
 	return true
 end

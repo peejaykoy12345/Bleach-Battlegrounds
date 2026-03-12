@@ -57,6 +57,12 @@ Melee.Effects = {
     Hit = ReplicatedStorage.Assets.Effects.Combat.FistHit
 }
 
+Melee.ValidateHitParams = {
+    Block = {
+        Blockable = true,
+    }
+}
+
 export type params = {
     char: Model,
 }
@@ -151,7 +157,7 @@ function Melee:M1()
         end)
 
         hb.Touched:Connect(function(hitChar)
-            if not MoveUtils:ValidateHit(self.char, hitChar) then return end
+            if not MoveUtils:ValidateHit(self.char, hitChar, self.ValidateHitParams) then return end
             
             local ehrp = hitChar:FindFirstChild("HumanoidRootPart")
             if not ehrp then return end
@@ -160,9 +166,10 @@ function Melee:M1()
 
             hitChar.Humanoid:TakeDamage(10)
             StunService:Stun(hitChar, {
-                stunPriority = 1,
+                stunPriority = 2,
                 stunDuration = 1,
-                stunSpeed = 1
+                stunSpeed = 0,
+                canRotate = false,
             })
             AnimationService:Play(hitChar, self.hitAnims[animToPlay])
             MoveUtils:FacePlayer(ehrp, self.hrp)
@@ -205,6 +212,14 @@ function Melee:M1()
         task.delay(0.2, function()
             updateConn:Disconnect()
         end)
+    end
+
+    if animToPlay == #self.M1anims then 
+        StunService:SpeedDebuff(self.char, {
+            priority = 1,
+            duration = .7,
+            speed = 0,
+        })
     end
 
     track:GetMarkerReachedSignal("Hit"):Connect(fireHitbox)

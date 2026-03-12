@@ -87,6 +87,7 @@ local RESTRICTED_ACTION_STATES = {
 	"CantUse",
 	"InCutscene",
     "Stunned",
+	"Blocking"
 }
 
 function StateManager.isActionBlocked(char: Model, statesToSkip: {string}?): boolean

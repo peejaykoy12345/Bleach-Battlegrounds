@@ -155,7 +155,7 @@ function ActionSession:Stop(forcestop: boolean?)
     end
 
     if self.states then
-        self:RemoveStatesTo(self.attacker, self.attackerStates)
+        self:RemoveStatesTo(self.attacker, self.states.attackerStates)
         self:RemoveStatesTo(self.attacker, self.states.sharedStates)
 
         for _, target in ipairs(self.targets) do
