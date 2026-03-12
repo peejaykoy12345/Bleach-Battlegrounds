@@ -69,6 +69,18 @@ function MoveUtils:RagdollCharacter(target: Model, duration: number, ragdollStat
 	end)
 end
 
+local RecentHits = {} -- [attacker][target] = true
+
+function MoveUtils:RegisterHit(attacker, target)
+    RecentHits[attacker] = RecentHits[attacker] or {}
+    RecentHits[attacker][target] = true
+    task.delay(0.5, function()
+        if RecentHits[attacker] then
+            RecentHits[attacker][target] = nil
+        end
+    end)
+end
+
 type ValidateHitParams = {
 	StatesToSkip: {[string]: boolean}
 }
@@ -83,6 +95,8 @@ function MoveUtils:ValidateHit(attacker, target, params: ValidateHitParams?): bo
 	if StateManager.isCharacterInvincible(target, params.StatesToSkip) then
 		return false
 	end
+
+	if RecentHits[target] and RecentHits[target][attacker] then return false end
 
 	return true
 end

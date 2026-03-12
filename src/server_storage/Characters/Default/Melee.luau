@@ -12,6 +12,7 @@ local ActionSession = require(UtilitiesFolder.Combat.ActionSession)
 local AsyncTimer = require(UtilitiesFolder.AsyncTimer)
 local SoundManagerService = require(ServerScriptService.Server.Services.SoundManagerService)
 local ClientFXService = require(ServerScriptService.Server.Services.ClientFXService)
+local StunService = require(ServerScriptService.Server.Services.StunService)
 
 local CONFIG = {
     M1Cooldown = 0.3,
@@ -108,9 +109,9 @@ function Melee:M1()
         actionName = "DefaultM1",
         actionType = "Cooldown",
         states = {
-            sharedStates = {
-                "Cantuse",
-            },
+            targetStates = {
+                "CantUse",
+            }
         },
     })
 
@@ -142,6 +143,7 @@ function Melee:M1()
         local hb = MoveUtils:CreateStandardHitbox({
             CFrame = self.hrp.CFrame * CFrame.new(0, 0, -3)
         })
+        session.hitbox = hb
         hb:Start()
 
         local updateConn = RunService.Heartbeat:Connect(function()
@@ -154,7 +156,14 @@ function Melee:M1()
             local ehrp = hitChar:FindFirstChild("HumanoidRootPart")
             if not ehrp then return end
 
+            session:InitTarget(hitChar)
+
             hitChar.Humanoid:TakeDamage(10)
+            StunService:Stun(hitChar, {
+                stunPriority = 1,
+                stunDuration = 1,
+                stunSpeed = 1
+            })
             AnimationService:Play(hitChar, self.hitAnims[animToPlay])
             MoveUtils:FacePlayer(ehrp, self.hrp)
 
@@ -191,8 +200,6 @@ function Melee:M1()
                 self:ApplyVelocity(hitChar)
             end
         end)
-
-        session.hitbox = hb
 
         -- disconnect when hitbox stops
         task.delay(0.2, function()
