@@ -20,6 +20,10 @@ local CONFIG = {
     Velocity = {
         ZAxis = 50, 
         YAxis = 15,
+    },
+    UppercutVelocity = {
+        ZAxis = 7.5,
+        YAxis = 40
     }
 }
 
@@ -31,6 +35,8 @@ Melee.M1anims = {
     [3] = 88790772873415,
     [4] = 137132189634903,
 }
+
+Melee.UppercutAnim = 93453910872508
 
 Melee.SwingSFX = {
     [1] = 686669695,
@@ -77,6 +83,8 @@ function Melee.new(params: params)
     self.timer.timeout:Connect(function()
         self.animIdToPlay = 1
         self.timer:Reset()
+
+        self.char:SetAttribute("M1Finisher", nil)
     end)
 
     self.comboCooldown = false
@@ -92,14 +100,14 @@ function Melee:ApplyVelocity(enemy: Model)
 
     local Mass1, Mass2 = MoveUtils:GetModelMass(char), MoveUtils:GetModelMass(enemy)
 
-    local function createBv(parent, vel)
-        local bv = Velocity.CreateBV(parent, Vector3.new(Mass1 + 30000, 0, Mass1 + 30000))
+    local function createBv(parent, vel, mass)
+        local bv = Velocity.CreateBV(parent, Vector3.new(mass + 30000, 0, mass + 30000))
         bv.Velocity = vel
         Debris:AddItem(bv, .075)
     end
 
-    createBv(hrp, hrp.CFrame.LookVector * 14)
-    createBv(ehrp, hrp.CFrame.LookVector * 7)
+    createBv(hrp, hrp.CFrame.LookVector * 14, Mass1)
+    createBv(ehrp, hrp.CFrame.LookVector * 14, Mass2)
 end
 
 function Melee:M1()
@@ -132,10 +140,13 @@ function Melee:M1()
 
     if self.animIdToPlay > #self.M1anims then
         self.comboCooldown = true
+        self.char:SetAttribute("M1Finisher", nil)
         task.delay(CONFIG.ComboCooldown, function()
             self.animIdToPlay = 1
             self.comboCooldown = false
         end)
+    elseif animToPlay == #self.M1anims - 1 then
+        self.char:SetAttribute("M1Finisher", true)
     end
 
     local track: AnimationTrack = session:PlayAndAddAnimation(self.char, self.M1anims[animToPlay], {Priority = 4})
@@ -229,6 +240,92 @@ function Melee:M1()
 
     track.Ended:Connect(function()
         session:Stop()
+    end)
+end
+
+function Melee:Uppercut()
+    if not MoveUtils:CanPerformAction(self.char, "DefaultM1") then return end
+    if not self.char:GetAttribute("M1Finisher") then return end
+
+    local session = ActionSession.new({
+        attacker = self.char,
+        actionName = "DefaultM1",
+        actionType = "Cooldown",
+        states = {
+            targetStates = {
+                "CantUse",
+            }
+        },
+    })
+
+    if not session then return end
+
+    session:Start()
+
+    CooldownService:SetCooldown(self.char, "DefaultM1", CONFIG.M1Cooldown)
+
+    self.comboCooldown = true
+    self.char:SetAttribute("M1Finisher", nil)
+    task.delay(CONFIG.ComboCooldown, function()
+        self.animIdToPlay = 1
+        self.comboCooldown = false
+    end)
+
+    local track: AnimationTrack = session:PlayAndAddAnimation(self.char, self.UppercutAnim, {Priority = 4})
+    track:GetMarkerReachedSignal("Hit"):Connect(function()
+         local hb = MoveUtils:CreateStandardHitbox({
+            CFrame = self.hrp.CFrame * CFrame.new(0, 0, -3)
+        })
+        session.hitbox = hb
+        hb:Start()
+
+        local updateConn = RunService.Heartbeat:Connect(function()
+            hb.CFrame = self.hrp.CFrame * CFrame.new(0, 0, -3)
+        end)
+
+        hb.Touched:Connect(function(hitChar)
+            if not MoveUtils:ValidateHit(self.char, hitChar, self.ValidateHitParams) then return end
+            
+            local ehrp = hitChar:FindFirstChild("HumanoidRootPart")
+            if not ehrp then return end
+
+            session:InitTarget(hitChar)
+
+            hitChar.Humanoid:TakeDamage(10)
+            StunService:Stun(hitChar, {
+                stunPriority = 2,
+                stunDuration = 1,
+                stunSpeed = 0,
+                canRotate = false,
+            })
+
+            MoveUtils:FacePlayer(ehrp, self.hrp)
+
+            --SoundManagerService:Play(self.hitSFX[animToPlay], hitChar)
+
+            ClientFXService:Start(
+                {
+                    Name = "Hit",
+                    Type = "Combat"
+                },
+                {
+                    target = hitChar
+                }
+            )
+
+            MoveUtils:RagdollCharacter(hitChar, 1.5)
+            
+            local cf = self.hrp.CFrame
+            local bv = Velocity.CreateBV(ehrp, Vector3.new(math.huge, math.huge, math.huge))
+            bv.Velocity = (cf.LookVector * CONFIG.UppercutVelocity.ZAxis) + (cf.UpVector * CONFIG.UppercutVelocity.YAxis)
+
+            Debris:AddItem(bv, 0.2)
+        end)
+
+        -- disconnect when hitbox stops
+        task.delay(0.2, function()
+            updateConn:Disconnect()
+        end)
     end)
 end
 
