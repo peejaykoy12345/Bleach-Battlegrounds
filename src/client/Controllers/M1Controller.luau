@@ -56,8 +56,11 @@ function M1Controller:KnitStart()
 			task.spawn(function()
 				while isHold do
 					local char = getChar()
+					local hum = char and char:FindFirstChildOfClass("Humanoid")
 
-					if isJumping() and char and char:GetAttribute("M1Finisher") then
+					if char and char:GetAttribute("M1Finisher") and hum:GetState() == Enum.HumanoidStateType.Freefall then
+						self.ActionService:PerformAction("Downslam", {})
+					elseif isJumping() and char and char:GetAttribute("M1Finisher") then
 						self:disableJump(.6)
 						self.ActionService:PerformAction("Uppercut", {})
 					else

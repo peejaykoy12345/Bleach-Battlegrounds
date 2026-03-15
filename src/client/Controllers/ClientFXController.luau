@@ -24,6 +24,8 @@ function ClientFXController:KnitStart()
             return
         end
 
+        print("ClientFX")
+
         local fxModule = require(module_script)
         fxModule:Start(args)
     end)
