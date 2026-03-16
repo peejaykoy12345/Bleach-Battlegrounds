@@ -23,6 +23,11 @@ end
 function MoveUtils:CanPerformAction(char: Model, actionName: string, params): boolean
 	params = params or {}
 
+	if actionName == "M1" then
+		params.statesToSkip = params.statesToSkip or {}
+		params.statesToSkip["M1CantUse"] = true
+	end
+
 	if StateManager.isActionBlocked(char, params.statesToSkip) then
 		return false
 	end

@@ -31,7 +31,7 @@ function module:HandleAction(plr: Player, params)
     if not char then return end
 
     if not MoveUtils:CanPerformAction(char, "M1") then
-        BufferInput:Press(plr, "DefaultM1", function(plr, params)
+        BufferInput:Press(plr, "M1", function(plr, params)
             self:_HandleM1(plr)
         end)
         return

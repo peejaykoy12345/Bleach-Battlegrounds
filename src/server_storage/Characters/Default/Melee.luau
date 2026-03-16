@@ -123,15 +123,17 @@ end
 function Melee:_CreateSession()
     local session = ActionSession.new({
         attacker = self.char,
-        actionName = "DefaultM1",
+        actionName = "M1",
         actionType = "Cooldown",
         states = {
+            attackerStates = { "M1CantUse" },
             targetStates = { "CantUse" }
         },
     })
+    
     if not session then return end
     session:Start()
-    CooldownService:SetCooldown(self.char, "DefaultM1", CONFIG.M1Cooldown)
+    CooldownService:SetCooldown(self.char, "M1", CONFIG.M1Cooldown)
     return session
 end
 
@@ -179,7 +181,7 @@ function Melee:_EndCombo()
 end
 
 function Melee:M1()
-    if not MoveUtils:CanPerformAction(self.char, "DefaultM1") then return end
+    if not MoveUtils:CanPerformAction(self.char, "M1") then return end
     if self.comboCooldown then return end
 
     local animToPlay = self.animIdToPlay
@@ -245,7 +247,7 @@ function Melee:M1()
 end
 
 function Melee:Uppercut()
-    if not MoveUtils:CanPerformAction(self.char, "DefaultM1") then return end
+    if not MoveUtils:CanPerformAction(self.char, "M1") then return end
     if not self.char:GetAttribute("M1Finisher") then return end
 
     local session = self:_CreateSession()
@@ -313,7 +315,7 @@ function Melee:Uppercut()
 end
 
 function Melee:Downslam()
-    if not MoveUtils:CanPerformAction(self.char, "DefaultM1") then return end
+    if not MoveUtils:CanPerformAction(self.char, "M1") then return end
     if not self.char:GetAttribute("M1Finisher") then return end
 
     local hum: Humanoid = self.char and self.char:FindFirstChildOfClass("Humanoid")
