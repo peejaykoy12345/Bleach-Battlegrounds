@@ -54,7 +54,7 @@ function module:Start(args)
 
             VFXUtils.emitEveryParticleEmitter(vfx)
 
-            RocksModule.Ground(pos, 8, Vector3.new(1.2, .9, 1.2) * 2, nil, 8, false, 1.4)
+            RocksModule.Ground(pos, 7, Vector3.new(0.7, .5, 0.7) * 2, nil, 8, false, 1.4)
             CanContinue = false
         end
     end)
