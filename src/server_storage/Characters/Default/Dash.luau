@@ -5,9 +5,11 @@ local ServerScriptService = game:GetService("ServerScriptService")
 
 local ActionSession = require(ServerScriptService.Server.Utilities.Combat.ActionSession)
 local MoveUtils = require(ServerScriptService.Server.Utilities.Combat.MoveUtils)
+local StateManager = require(ServerScriptService.Server.Utilities.Combat.StateManager)
 
 local ClientFXService = require(ServerScriptService.Server.Services.ClientFXService)
 local AnimationService = require(ServerScriptService.Server.Services.AnimationService)
+local CooldownService = require(ServerScriptService.Server.Services.CooldownService)
 
 local remotes = require(ReplicatedStorage.Packages.remotes)
 
@@ -30,7 +32,11 @@ Dash.Effects = {
 }
 
 function Dash.CanDash(char: Model): boolean
-    return MoveUtils:CanPerformAction(char, "Dash")
+    if StateManager.HasState(char, "Ragdoll") and not CooldownService:IsOnCooldown(char, "RagdollCancel") then
+        return true
+    else
+        return MoveUtils:CanPerformAction(char, "Dash", { statesToSkip = { "Ragdoll" } })
+    end
 end
 
 function Dash:_CreateHitbox(char: Model, session, onTouched, validateHitParams)
@@ -72,7 +78,9 @@ function Dash:_FireHitFX(hitChar)
 end
 
 function Dash:Dash(char: Model, dir: string)
+    print("Attemping to dash")
     if not self.CanDash(char) then return end
+    print("DASHING")
 
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
@@ -90,6 +98,12 @@ function Dash:Dash(char: Model, dir: string)
     })
 
     if not session then return end
+    print(StateManager.HasState(char, "Ragdoll"))
+    if StateManager.HasState(char, "Ragdoll") then
+        
+        CooldownService:SetCooldown(char, "RagdollCancel", 10)
+        MoveUtils:UnragdollCharacter(char)
+    end
 
     local track = session:PlayAndAddAnimation(char, Dash.Anims[dir], { Priority = 3 })
     if dir == "Forward" then

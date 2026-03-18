@@ -9,6 +9,7 @@ local StateManager = require(CombatUtilities.StateManager)
 local BlockUtils = require(CombatUtilities.BlockUtils)
 
 local MoveUtils = {}
+MoveUtils.ragdollTasks = {}
 
 function MoveUtils:CreateStandardHitbox(config)
 	config = config or {}
@@ -32,9 +33,13 @@ function MoveUtils:CanPerformAction(char: Model, actionName: string, params): bo
 		return false
 	end
 
+	print(actionName)
+
 	if CooldownService:IsOnCooldown(char, actionName) then
 		return false
 	end
+
+	print(actionName .. "has passed cooldwon")
 
 	return true
 end
@@ -69,10 +74,30 @@ function MoveUtils:RagdollCharacter(target: Model, duration: number, ragdollStat
 		return
 	end
 
+	StateManager.SetState(target, "Ragdoll", true)
+
 	RagdollTrigger.Value = ragdollStatus
-	task.delay(duration, function()
+	self.ragdollTasks[target] = task.delay(duration, function()
 		RagdollTrigger.Value = not ragdollStatus
+		self.ragdollTasks[target] = nil
+
+		StateManager.RemoveState(target, "Ragdoll")
 	end)
+end
+
+function MoveUtils:UnragdollCharacter(target: Model)
+	if self.ragdollTasks[target] then task.cancel(self.ragdollTasks[target]) end
+
+	local RagdollTrigger = target:FindFirstChild("RagdollTrigger")
+	if not RagdollTrigger then
+		warn(`RagdollTrigger not found in {target.Name}`)
+		return
+	end
+
+	RagdollTrigger.Value = false
+	StateManager.RemoveState(target, "Ragdoll")
+
+	self.ragdollTasks[target] = nil
 end
 
 local RecentHits = {} -- [attacker][target] = true

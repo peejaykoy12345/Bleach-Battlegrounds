@@ -90,6 +90,7 @@ local RESTRICTED_ACTION_STATES = {
 	"Blocking",
 	"M1CantUse",
 	"DashCantUse",
+	"Ragdoll",
 }
 
 function StateManager.isActionBlocked(char: Model, statesToSkip: {string}?): boolean
