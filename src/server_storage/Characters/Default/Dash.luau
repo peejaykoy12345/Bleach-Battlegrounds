@@ -98,7 +98,9 @@ function Dash:Dash(char: Model, dir: string)
     })
 
     if not session then return end
-    print(StateManager.HasState(char, "Ragdoll"))
+
+    session:Start()
+
     if StateManager.HasState(char, "Ragdoll") then
         
         CooldownService:SetCooldown(char, "RagdollCancel", 10)
@@ -106,22 +108,27 @@ function Dash:Dash(char: Model, dir: string)
     end
 
     local track = session:PlayAndAddAnimation(char, Dash.Anims[dir], { Priority = 3 })
+
+    local trackLength = track.Length 
+    if trackLength <= 0 then
+        trackLength = .5
+    else
+        trackLength -= .1
+    end
+
     if dir == "Forward" then
         track:AdjustSpeed(.7) 
-
-        local trackLength = track.Length 
-        if trackLength <= 0 then
-            trackLength = .5
-        else
-            trackLength -= .1
-        end
 
         task.delay(trackLength, function()
             track:Stop()
             local newTrack: AnimationTrack = session:PlayAndAddAnimation(char, Dash.Anims.ForwardHit, { Priority = 3 })
-            newTrack.Ended:Connect(function()
-                session:Stop()
-            end)
+
+            local newTrackLength = newTrack.Length
+            if newTrackLength <= 0 then
+                newTrackLength = .5
+            else
+                newTrackLength -= .1
+            end
 
             self:_CreateHitbox(char, session, function(hitChar, ehrp)
                 AnimationService:Play(hitChar, self.Anims.OnHit)
@@ -135,6 +142,14 @@ function Dash:Dash(char: Model, dir: string)
 
                 MoveUtils:FacePlayer(ehrp, hrp)
             end)
+
+            task.delay(newTrackLength, function()
+                session:Stop()
+            end)
+        end)
+    else
+        task.delay(trackLength, function()
+            session:Stop()
         end)
     end
 
