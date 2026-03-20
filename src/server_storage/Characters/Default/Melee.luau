@@ -18,7 +18,7 @@ local CONFIG = {
     M1Cooldown = 0.3,
     ComboCooldown = 1.2,
     Velocity = {
-        ZAxis = 50,
+        ZAxis = 25,
         YAxis = 15,
     },
     UppercutVelocity = {
