@@ -164,6 +164,10 @@ function ActionSession:Stop(forcestop: boolean?)
         end
     end
 
+    if self.extraStopFunction then
+        self.extraStopFunction(self)
+    end
+
     -- After each action session is stopped, check if there are any buffered inputs to consume
     local plr = Players:GetPlayerFromCharacter(self.attacker)
     if plr then

@@ -6,6 +6,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ActionSession = require(ServerScriptService.Server.Utilities.Combat.ActionSession)
 local MoveUtils = require(ServerScriptService.Server.Utilities.Combat.MoveUtils)
 local StateManager = require(ServerScriptService.Server.Utilities.Combat.StateManager)
+local Velocity = require(ServerScriptService.Server.Utilities.Combat.Velocity)
 
 local ClientFXService = require(ServerScriptService.Server.Services.ClientFXService)
 local AnimationService = require(ServerScriptService.Server.Services.AnimationService)
@@ -69,6 +70,69 @@ function Dash:_CreateHitbox(char: Model, session, onTouched, validateHitParams)
     end)
 end
 
+function Dash:_ApplyVelocity(char: Model, dir: string)
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    local isForward = dir == "Forward"
+    local isBackward = dir == "Backward"
+    local isMain = not (dir == "Right" or dir == "Left")
+
+    local speed = if isForward then (175 * .75) elseif isBackward then 70 else 140
+    local multiplier = if isForward then .95 else 0.98
+    local int = speed
+    local usedint = int
+
+    local dirVector = if isForward then Vector3.new(0, 0, -1)
+        elseif isBackward then Vector3.new(0, 0, 1)
+        elseif dir == "Right" then Vector3.new(1, 0, 0)
+        else Vector3.new(-1, 0, 0)
+
+    if hrp:FindFirstChild("DashAttachment") then
+        hrp:FindFirstChild("DashAttachment"):Destroy()
+    end
+
+    local attachment = Instance.new("Attachment")
+    attachment.Name = "DashAttachment"
+    attachment.Parent = hrp
+
+    local lv = Velocity.CreateLV(hrp, {
+        Attachment = attachment,
+        Velocity = dirVector * usedint,
+        Lifetime = if isForward then .5 elseif isMain then .9 else 0.15
+    })
+
+    if isBackward then
+        task.delay(.5, function()
+            usedint = 0
+            task.wait(.2)
+            usedint = 150
+        end)
+    end
+
+    if isForward then
+        task.delay(.365, function()
+            multiplier = .625
+            int = 30
+            usedint = 30
+        end)
+    end
+
+    task.spawn(function()
+        while lv.Parent do
+            int *= multiplier
+            usedint = int
+            lv.VectorVelocity = dirVector * usedint
+            if int <= 1 then break end
+            task.wait(1 / 60)
+        end
+        if lv and lv.Parent then lv:Destroy() end
+        if attachment and attachment.Parent then attachment:Destroy() end
+    end)
+
+    return lv
+end
+
 function Dash:_FireHitFX(hitChar)
     ClientFXService:Start({ Name = "Hit", Type = "Combat" }, { target = hitChar })
     ClientFXService:Start({ Name = "EmitParticles", Type = "Combat" }, {
@@ -108,6 +172,11 @@ function Dash:Dash(char: Model, dir: string)
     end
 
     local track = session:PlayAndAddAnimation(char, Dash.Anims[dir], { Priority = 3 })
+
+    local lv = self:_ApplyVelocity(char, dir)
+    session.extraStopFunction = function()
+        if lv then lv:Destroy() end
+    end
 
     local trackLength = track.Length 
     if trackLength <= 0 then
@@ -156,7 +225,7 @@ function Dash:Dash(char: Model, dir: string)
     local plr = Players:GetPlayerFromCharacter(char)
     if not plr then return end
 
-    DashEvent:FireClient(plr, dir)
+    --DashEvent:FireClient(plr, dir)
 end
 
 return Dash
