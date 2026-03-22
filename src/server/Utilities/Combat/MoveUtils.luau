@@ -33,14 +33,18 @@ function MoveUtils:CanPerformAction(char: Model, actionName: string, params): bo
 		return false
 	end
 
-	print(actionName)
+	if actionName ~= "M1" then
+		print(actionName)
+	end
 
 	if CooldownService:IsOnCooldown(char, actionName) then
 		return false
 	end
 
-	print(actionName .. "has passed cooldwon")
-
+	if actionName ~= "M1" then
+		print(actionName .. "has passed cooldwon")
+	end
+	
 	return true
 end
 

@@ -1,6 +1,7 @@
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local ActionSession = require(ServerScriptService.Server.Utilities.Combat.ActionSession)
+local StunService = require(ServerScriptService.Server.Services.StunService)
 
 local Block = {}
 Block.__index = Block
@@ -15,21 +16,34 @@ function Block:Start(char)
         actionName = "Block",
         actionType = "Misc",
         states = {
-            attackerStates = {"Blocking"}
+            attackerStates = {"Blocking"},
         }
     })
 
     session:Start()
 
     session:PlayAndAddAnimation(char, self.Anims, {Priority = 2})
+    local stopDebuff = StunService:SpeedDebuff(char, {speed = 5, duration = 999, priority = 1})
 
-    BlockSessions[char] = session
+    BlockSessions[char] = {
+        session = session,
+        stopDebuff = stopDebuff
+    }
 end
 
 function Block:Stop(char)
     if BlockSessions[char] then
-        BlockSessions[char]:Stop(true)
-        BlockSessions[char] = nil
+        local session = BlockSessions[char].session
+        local stopDebuff = BlockSessions[char].stopDebuff
+        
+        if session then
+            session:Stop(true)
+            BlockSessions[char].session = nil
+        end
+
+        if stopDebuff then
+            stopDebuff()
+        end
     end
 end
 

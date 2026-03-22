@@ -32,11 +32,16 @@ Dash.Effects = {
     Hit = ReplicatedStorage.Assets.Effects.Combat.FistHit,
 }
 
-function Dash.CanDash(char: Model): boolean
+function Dash.CanDash(char: Model, dir): boolean
+    local SideDash = dir == "Left" or dir == "Right"
+
+    local dashType = SideDash and "SideDash" or "Dash"
+
     if StateManager.HasState(char, "Ragdoll") and not CooldownService:IsOnCooldown(char, "RagdollCancel") then
         return true
     else
-        return MoveUtils:CanPerformAction(char, "Dash", { statesToSkip = { "Ragdoll" } })
+        local CanPerformAction = MoveUtils:CanPerformAction(char, dashType, { statesToSkip = { "Ragdoll" } })
+        return CanPerformAction
     end
 end
 
@@ -78,7 +83,7 @@ function Dash:_ApplyVelocity(char: Model, dir: string)
     local isBackward = dir == "Backward"
     local isMain = not (dir == "Right" or dir == "Left")
 
-    local speed = if isForward then (175 * .75) elseif isBackward then 70 else 140
+    local speed = if isForward then (130 * .75) elseif isBackward then 70 else 140
     local multiplier = if isForward then .95 else 0.98
     local int = speed
     local usedint = int
@@ -142,17 +147,17 @@ function Dash:_FireHitFX(hitChar)
 end
 
 function Dash:Dash(char: Model, dir: string)
-    print("Attemping to dash")
-    if not self.CanDash(char) then return end
-    print("DASHING")
+    if not self.CanDash(char, dir) then return end
 
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
+    local dashType = (dir == "Left" or dir == "Right") and "SideDash" or "Dash"
+
     local session = ActionSession.new({
         attacker = char,
-        actionName = "Dash",
-        actionType = "Misc",
+        actionName = dashType,
+        actionType = "Cooldown",
         cooldown = {
             cooldown = 1
         },
@@ -182,7 +187,7 @@ function Dash:Dash(char: Model, dir: string)
     if trackLength <= 0 then
         trackLength = .5
     else
-        trackLength -= .1
+        trackLength -= .2
     end
 
     if dir == "Forward" then
