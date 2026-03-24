@@ -1,4 +1,5 @@
 local Debris = game:GetService("Debris")
+local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local UtilitiesFolder = ServerScriptService.Server.Utilities
@@ -19,6 +20,22 @@ function MoveUtils:CreateStandardHitbox(config)
 	hitbox.CFrame = config.CFrame or CFrame.new(0, 0, 0)
 	hitbox.Visualizer = config.VISUALIZER ~= false 
 	return hitbox
+end
+
+function MoveUtils:WeldHitboxToPart(part: BasePart, hb, offset: CFrame, delayUntilRemoval: number)
+	--[[offset = offset or CFrame.new(0, 0, -3)
+	local updateConn = RunService.Stepped:Connect(function()
+        hb.CFrame = part.CFrame * offset
+    end)
+
+	task.delay(delayUntilRemoval or .2, function()
+		updateConn:Disconnect()
+	end)]]
+
+	hb.CFrame = part
+	hb.Offset = offset
+	
+	--return updateConn
 end
 
 function MoveUtils:CanPerformAction(char: Model, actionName: string, params): boolean

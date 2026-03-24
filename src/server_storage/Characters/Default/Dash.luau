@@ -180,6 +180,7 @@ function Dash:Dash(char: Model, dir: string)
 
     local lv = self:_ApplyVelocity(char, dir)
     session.extraStopFunction = function()
+        print("Destroyed")
         if lv then lv:Destroy() end
     end
 
@@ -193,7 +194,11 @@ function Dash:Dash(char: Model, dir: string)
     if dir == "Forward" then
         track:AdjustSpeed(.7) 
 
-        task.delay(trackLength, function()
+        local punched = false
+
+        local function punch()
+            if punched then return end
+            punched = true
             track:Stop()
             local newTrack: AnimationTrack = session:PlayAndAddAnimation(char, Dash.Anims.ForwardHit, { Priority = 3 })
 
@@ -220,6 +225,32 @@ function Dash:Dash(char: Model, dir: string)
             task.delay(newTrackLength, function()
                 session:Stop()
             end)
+        end
+
+        --[[task.delay(trackLength / 2, function()
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if not hrp then return end
+            local hb = MoveUtils:CreateStandardHitbox({
+                SIZE = Vector3.new(5, 1, -10),
+                CFrame = hrp.CFrame * CFrame.new(0, 0, -3)
+            })
+            hb:Start()
+
+            MoveUtils:WeldHitboxToPart(hrp, hb, CFrame.new(0, 0, -3))
+
+            hb.Touched:Connect(function(hitChar)
+                if not MoveUtils:ValidateHit(char, hitChar) then return end
+                hb:Stop()
+                punch()
+            end)
+
+            task.delay(0.3, function()
+                hb:Stop()
+            end)
+        end)]]
+
+        task.delay(trackLength, function()
+            punch()
         end)
     else
         task.delay(trackLength, function()
