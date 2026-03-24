@@ -180,7 +180,6 @@ function Dash:Dash(char: Model, dir: string)
 
     local lv = self:_ApplyVelocity(char, dir)
     session.extraStopFunction = function()
-        print("Destroyed")
         if lv then lv:Destroy() end
     end
 
@@ -227,27 +226,29 @@ function Dash:Dash(char: Model, dir: string)
             end)
         end
 
-        --[[task.delay(trackLength / 2, function()
+        task.delay(trackLength / 4, function()
             local hrp = char:FindFirstChild("HumanoidRootPart")
             if not hrp then return end
             local hb = MoveUtils:CreateStandardHitbox({
-                SIZE = Vector3.new(5, 1, -10),
+                SIZE = Vector3.new(1, 1, -20),
                 CFrame = hrp.CFrame * CFrame.new(0, 0, -3)
             })
             hb:Start()
 
-            MoveUtils:WeldHitboxToPart(hrp, hb, CFrame.new(0, 0, -3))
+            MoveUtils:WeldHitboxToPart(hrp, hb, CFrame.new(0, 0, -20))
 
             hb.Touched:Connect(function(hitChar)
                 if not MoveUtils:ValidateHit(char, hitChar) then return end
                 hb:Stop()
+
+                lv:Destroy()
                 punch()
             end)
 
             task.delay(0.3, function()
                 hb:Stop()
             end)
-        end)]]
+        end)
 
         task.delay(trackLength, function()
             punch()
