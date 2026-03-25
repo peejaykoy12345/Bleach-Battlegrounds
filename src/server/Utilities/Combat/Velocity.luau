@@ -7,6 +7,29 @@ function Velocity.CreateBV(parent: Instance, MaxForce: Vector3)
 	return bv
 end
 
+type BodyVelocityParams = {
+	Velocity: Vector3,
+	Attachment: Attachment?,
+	MaxForce: Vector3?,
+	Lifetime: number?,
+}
+
+function Velocity.CreateBodyVelocity(parent: Instance, params: BodyVelocityParams): BodyVelocity
+	local bv = Instance.new("BodyVelocity")
+	bv.MaxForce = params.MaxForce or Vector3.new(9999999, 9999999, 99999999)
+	bv.Velocity = params.Velocity or Vector3.new(0, 0, 0)
+	bv.Parent = parent
+
+	local lifetime = params.Lifetime
+	if lifetime then
+		task.delay(lifetime, function()
+			bv:Destroy()
+		end)
+	end
+
+	return bv
+end
+
 type LinearVelocityParams = {
 	Velocity: Vector3,
 	Attachment: Attachment?,

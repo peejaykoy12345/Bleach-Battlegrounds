@@ -83,29 +83,40 @@ function Dash:_ApplyVelocity(char: Model, dir: string)
     local isBackward = dir == "Backward"
     local isMain = not (dir == "Right" or dir == "Left")
 
-    local speed = if isForward then (130 * .75) elseif isBackward then 70 else 140
     local multiplier = if isForward then .95 else 0.98
-    local int = speed
+    local Speed = if isForward then 175 * .75 elseif isBackward then 70 else 140
+    local int = Speed
     local usedint = int
 
-    local dirVector = if isForward then Vector3.new(0, 0, -1)
-        elseif isBackward then Vector3.new(0, 0, 1)
-        elseif dir == "Right" then Vector3.new(1, 0, 0)
-        else Vector3.new(-1, 0, 0)
+    local alignDirection = if isForward then 0
+        elseif isBackward then 180
+        elseif dir == "Right" then -90
+        else 90
 
-    if hrp:FindFirstChild("DashAttachment") then
-        hrp:FindFirstChild("DashAttachment"):Destroy()
+    for _, v in hrp:GetChildren() do
+        if v:IsA("LinearVelocity") or v:IsA("Attachment") then v:Destroy() end
     end
 
-    local attachment = Instance.new("Attachment")
-    attachment.Name = "DashAttachment"
-    attachment.Parent = hrp
+    local att = Instance.new("Attachment")
+    att.CFrame = CFrame.new()
+    att.Parent = hrp
 
-    local lv = Velocity.CreateLV(hrp, {
-        Attachment = attachment,
-        Velocity = dirVector * usedint,
-        Lifetime = if isForward then .5 elseif isMain then .9 else 0.15
-    })
+    local lv = Instance.new("LinearVelocity")
+    lv.Attachment0 = att
+    lv.VelocityConstraintMode = Enum.VelocityConstraintMode.Plane
+    lv.PrimaryTangentAxis = Vector3.new(1, 0, 0)
+    lv.SecondaryTangentAxis = Vector3.new(0, 0, 1)
+    lv.PlaneVelocity = Vector2.new(0, 0)
+    lv.MaxForce = 40000
+    lv.Parent = hrp
+
+    lv.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
+
+    local lifetime = if isForward then 1 elseif isMain then 1 else 0.15
+    task.delay(lifetime, function()
+        if lv and lv.Parent then lv:Destroy() end
+        if att and att.Parent then att:Destroy() end
+    end)
 
     if isBackward then
         task.delay(.5, function()
@@ -124,15 +135,16 @@ function Dash:_ApplyVelocity(char: Model, dir: string)
     end
 
     task.spawn(function()
-        while lv.Parent do
+        while lv and lv.Parent do
             int *= multiplier
             usedint = int
-            lv.VectorVelocity = dirVector * usedint
+            local lookVec = (hrp.CFrame * CFrame.Angles(0, math.rad(alignDirection), 0)).LookVector
+            lv.PlaneVelocity = Vector2.new(lookVec.X * usedint, lookVec.Z * usedint)
             if int <= 1 then break end
             task.wait(1 / 60)
         end
         if lv and lv.Parent then lv:Destroy() end
-        if attachment and attachment.Parent then attachment:Destroy() end
+        if att and att.Parent then att:Destroy() end
     end)
 
     return lv
@@ -171,19 +183,18 @@ function Dash:Dash(char: Model, dir: string)
     session:Start()
 
     if StateManager.HasState(char, "Ragdoll") then
-        
         CooldownService:SetCooldown(char, "RagdollCancel", 10)
         MoveUtils:UnragdollCharacter(char)
     end
 
     local track = session:PlayAndAddAnimation(char, Dash.Anims[dir], { Priority = 3 })
 
-    local lv = self:_ApplyVelocity(char, dir)
+    local bv = self:_ApplyVelocity(char, dir)
     session.extraStopFunction = function()
-        if lv then lv:Destroy() end
+        if bv then bv:Destroy() end
     end
 
-    local trackLength = track.Length 
+    local trackLength = track.Length
     if trackLength <= 0 then
         trackLength = .5
     else
@@ -191,7 +202,7 @@ function Dash:Dash(char: Model, dir: string)
     end
 
     if dir == "Forward" then
-        track:AdjustSpeed(.7) 
+        track:AdjustSpeed(.7)
 
         local punched = false
 
@@ -225,30 +236,6 @@ function Dash:Dash(char: Model, dir: string)
                 session:Stop()
             end)
         end
-
-        task.delay(trackLength / 4, function()
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-            if not hrp then return end
-            local hb = MoveUtils:CreateStandardHitbox({
-                SIZE = Vector3.new(1, 1, -20),
-                CFrame = hrp.CFrame * CFrame.new(0, 0, -3)
-            })
-            hb:Start()
-
-            MoveUtils:WeldHitboxToPart(hrp, hb, CFrame.new(0, 0, -20))
-
-            hb.Touched:Connect(function(hitChar)
-                if not MoveUtils:ValidateHit(char, hitChar) then return end
-                hb:Stop()
-
-                lv:Destroy()
-                punch()
-            end)
-
-            task.delay(0.3, function()
-                hb:Stop()
-            end)
-        end)
 
         task.delay(trackLength, function()
             punch()
