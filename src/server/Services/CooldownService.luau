@@ -26,6 +26,7 @@ function CooldownService:SetCooldown(char: Model, action: string, cooldown: numb
     
     self.Cooldowns[char][action] = true
     task.delay(cooldown, function()
+        if not self.Cooldowns[char] then return end
         self.Cooldowns[char][action] = nil
     end)
 end
