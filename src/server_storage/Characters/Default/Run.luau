@@ -20,7 +20,7 @@ function Run:Run(char: Model)
     local session = ActionSession.new({
         attacker = char,
         actionName = "Run",
-        actionType = "Misc",
+        actionType = "Overrideable",
         states = {
             attackerStates = {"Running"}
         }
@@ -35,10 +35,10 @@ function Run:Run(char: Model)
         duration = 999,
         priority = 2
     })
+    session._stopSpeedBuff = stopSpeedBuff
 
     session.extraStopFunction = function()
-        stopSpeedBuff()
-        self.RunSessions[char] = nil
+        self:StopRun(char)
     end
 
     session:Start()
@@ -49,6 +49,14 @@ end
 function Run:StopRun(char: Model)
     local session = self.RunSessions[char]
     if not session then return end
+
+    self.RunSessions[char] = nil
+    session.extraStopFunction = nil
+
+    if session._stopSpeedBuff then
+        session._stopSpeedBuff()
+        session._stopSpeedBuff = nil
+    end
 
     session:Stop(true)
 end

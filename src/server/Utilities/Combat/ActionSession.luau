@@ -49,6 +49,11 @@ function ActionSession.new(params: ActionSessionParams)
     assert(params.actionName, "actionName is required")
     assert(params.actionType, "ActionType is required")
 
+    local pastSession = CharacterAttackSessions[params.attacker]
+    if pastSession and pastSession.actionType == "Overrideable" then
+        pastSession:Stop(true)
+    end
+
     local self = setmetatable({}, ActionSession)
 
     self.attacker = params.attacker
