@@ -4,3 +4,4 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local remotes = require(ReplicatedStorage.Packages.remotes)
 
 local DashEvent: RemoteEvent = remotes:getEventAsync("Dash")
+local UndashEvent: RemoteEvent = remotes:getEventAsync("UnDash")
