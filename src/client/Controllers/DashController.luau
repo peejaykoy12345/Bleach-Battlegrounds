@@ -28,8 +28,15 @@ function DashController:StartDash(hrp: BasePart, dir: string)
         elseif dir == "Right" then -90
         else 90
 
+    local char = hrp.Parent
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    local isGrounded = hum and hum.FloorMaterial ~= Enum.Material.Air
+
     local multiplier = if isForward then .95 else 0.98
     local Speed = if isForward then 175 * .75 elseif isBackward then 70 else 140
+    if not isGrounded then
+        Speed = if isForward then 168.5 * .75 elseif isBackward then 70 else 95
+    end
     local int = Speed
     local usedint = int
     local lifetime = if isMain then 1 else 0.15
@@ -63,10 +70,10 @@ function DashController:StartDash(hrp: BasePart, dir: string)
     end
 
     RunService:BindToRenderStep(bindName, Enum.RenderPriority.Character.Value + 1, function()
-		local liveCam = workspace.CurrentCamera.CFrame
-		hrp.CFrame = CFrame.lookAt(hrp.Position, hrp.Position + liveCam.LookVector * Vector3.new(1, 0, 1))
-		vel.Velocity = (hrp.CFrame * CFrame.Angles(0, math.rad(alignDirection), 0)).LookVector * usedint
-	end)
+        local liveCam = workspace.CurrentCamera.CFrame
+        hrp.CFrame = CFrame.lookAt(hrp.Position, hrp.Position + liveCam.LookVector * Vector3.new(1, 0, 1))
+        vel.Velocity = (hrp.CFrame * CFrame.Angles(0, math.rad(alignDirection), 0)).LookVector * usedint
+    end)
 
     task.spawn(function()
         while vel.Parent do
