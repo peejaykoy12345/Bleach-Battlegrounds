@@ -74,6 +74,8 @@ function ActionSession.new(params: ActionSessionParams)
     self.targets = {}
     self.options = params
 
+    self.stopped = false
+
     table.insert(CharacterAttackSessions[self.attacker], self)
 
     local conn
@@ -161,13 +163,11 @@ function ActionSession:Stop(forcestop: boolean?)
     local sessions = CharacterAttackSessions[self.attacker]
     if sessions then
         TableUtils:ArrayRemove(sessions, self)
-        if #sessions == 0 then
-            CharacterAttackSessions[self.attacker] = nil
-        end
     end
 
+    self.stopped = true
+
     if forcestop then
-        print("Stopping")
         self:StopAllAnimations()
     end
 
@@ -194,7 +194,6 @@ function ActionSession:Stop(forcestop: boolean?)
         self.extraStopFunction(self)
     end
 
-    -- After each action session is stopped, check if there are any buffered inputs to consume
     local plr = Players:GetPlayerFromCharacter(self.attacker)
     if plr then
         BufferInput.TryConsumeBuffer(plr)

@@ -38,12 +38,16 @@ function Run:Run(char: Model)
     session._stopSpeedBuff = stopSpeedBuff
 
     session.extraStopFunction = function()
-        self:StopRun(char)
+        self.RunSessions[char] = nil
+
+        if session._stopSpeedBuff then
+            session._stopSpeedBuff()
+            session._stopSpeedBuff = nil
+        end
     end
 
     session:Start()
-
-    local track = session:PlayAndAddAnimation(char, self.RunAnimation)
+    session:PlayAndAddAnimation(char, self.RunAnimation)
 end
 
 function Run:StopRun(char: Model)
