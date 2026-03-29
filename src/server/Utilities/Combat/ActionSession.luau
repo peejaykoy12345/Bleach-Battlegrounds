@@ -76,6 +76,13 @@ function ActionSession.new(params: ActionSessionParams)
 
     table.insert(CharacterAttackSessions[self.attacker], self)
 
+    local conn
+
+    conn = self.attacker.Humanoid.Died:Connect(function()
+        self:Stop(true)
+        conn:Disconnect()
+    end)
+
     return self
 end
 
