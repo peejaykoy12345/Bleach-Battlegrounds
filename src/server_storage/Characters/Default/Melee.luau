@@ -13,6 +13,7 @@ local AsyncTimer = require(UtilitiesFolder.AsyncTimer)
 local SoundManagerService = require(ServerScriptService.Server.Services.SoundManagerService)
 local ClientFXService = require(ServerScriptService.Server.Services.ClientFXService)
 local StunService = require(ServerScriptService.Server.Services.StunService)
+local DamageUtils = require(UtilitiesFolder.Combat.DamageUtils)
 
 local CONFIG = {
     M1Cooldown = 0.3,
@@ -28,6 +29,10 @@ local CONFIG = {
     DownslamVelocity = {
         ZAxis = 0,
         YAxis = -10,
+    },
+    DAMAGES = {
+        NORMAL = 3,
+        FINAL = 5,
     }
 }
 
@@ -143,23 +148,19 @@ function Melee:_CreateHitbox(session, onTouched, validateHitParams)
     local hb = MoveUtils:CreateStandardHitbox({
         CFrame = self.hrp.CFrame * CFrame.new(0, 0, -3)
     })
+
+    hb.Offset = CFrame.new(0, 0, -3)
+    hb.CFrame = self.hrp
     session.hitbox = hb
     hb:Start()
-
-    local updateConn = RunService.Heartbeat:Connect(function()
-        hb.CFrame = self.hrp.CFrame * CFrame.new(0, 0, -3)
-    end)
 
     hb.Touched:Connect(function(hitChar)
         if not MoveUtils:ValidateHit(self.char, hitChar, validateHitParams) then return end
         local ehrp = hitChar:FindFirstChild("HumanoidRootPart")
         if not ehrp then return end
+
         session:InitTarget(hitChar)
         onTouched(hitChar, ehrp)
-    end)
-
-    task.delay(0.2, function()
-        updateConn:Disconnect()
     end)
 end
 
@@ -263,7 +264,7 @@ function Melee:Uppercut()
         hitboxFired = true
 
         self:_CreateHitbox(session, function(hitChar, ehrp)
-            hitChar.Humanoid:TakeDamage(10)
+            DamageUtils:ValidateAndDamage(self.char, hitChar, CONFIG.DAMAGES.NORMAL)
 
             StunService:Stun(hitChar, {
                 stunPriority = 2,

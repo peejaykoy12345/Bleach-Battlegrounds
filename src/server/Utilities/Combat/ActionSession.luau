@@ -39,9 +39,12 @@ export type ActionSessionParams = {
 local CharacterAttackSessions = {}
 
 function ActionSession.StopSession(char)
-    if CharacterAttackSessions[char] then
-        CharacterAttackSessions[char]:Stop(true)
+    local sessions = CharacterAttackSessions[char]
+    if not sessions then return end
+    for _, session in ipairs(sessions) do
+        session:Stop(true)
     end
+    CharacterAttackSessions[char] = nil
 end
 
 function ActionSession.new(params: ActionSessionParams)
@@ -49,9 +52,15 @@ function ActionSession.new(params: ActionSessionParams)
     assert(params.actionName, "actionName is required")
     assert(params.actionType, "ActionType is required")
 
-    local pastSession = CharacterAttackSessions[params.attacker]
-    if pastSession and pastSession.actionType == "Overrideable" then
-        pastSession:Stop(true)
+    if not CharacterAttackSessions[params.attacker] then
+        CharacterAttackSessions[params.attacker] = {}
+    end
+
+    local sessions = CharacterAttackSessions[params.attacker]
+    for _, pastSession in ipairs(sessions) do
+        if pastSession.actionType == "Overrideable" then
+            pastSession:Stop(true)
+        end
     end
 
     local self = setmetatable({}, ActionSession)
@@ -60,15 +69,12 @@ function ActionSession.new(params: ActionSessionParams)
     self.actionName = params.actionName
     self.actionType = params.actionType
     self.cooldown = params.cooldown
-
     self.states = params.states
-
     self.animations = {}
     self.targets = {}
-
     self.options = params
 
-    CharacterAttackSessions[self.attacker] = self
+    table.insert(CharacterAttackSessions[self.attacker], self)
 
     return self
 end
@@ -145,6 +151,14 @@ function ActionSession:Start()
 end
 
 function ActionSession:Stop(forcestop: boolean?)
+    local sessions = CharacterAttackSessions[self.attacker]
+    if sessions then
+        TableUtils:ArrayRemove(sessions, self)
+        if #sessions == 0 then
+            CharacterAttackSessions[self.attacker] = nil
+        end
+    end
+
     if forcestop then
         print("Stopping")
         self:StopAllAnimations()
