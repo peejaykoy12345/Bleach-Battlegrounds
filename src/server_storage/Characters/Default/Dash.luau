@@ -98,9 +98,6 @@ function Dash:Dash(char: Model, dir: string)
         attacker = char,
         actionName = dashType,
         actionType = "Cooldown",
-        cooldown = {
-            cooldown = 1
-        },
         states = {
             attackerStates = {"CantUse"}
         }
@@ -127,6 +124,8 @@ function Dash:Dash(char: Model, dir: string)
         if wasRunning then
             RunHandler:StartRunning(char, true)
         end
+
+        CooldownService:SetCooldown(char, dashType, 1)
     end
 
     local trackLength = track.Length
