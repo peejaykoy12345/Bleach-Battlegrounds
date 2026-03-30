@@ -11,6 +11,8 @@ local ClientFXService = require(ServerScriptService.Server.Services.ClientFXServ
 local AnimationService = require(ServerScriptService.Server.Services.AnimationService)
 local CooldownService = require(ServerScriptService.Server.Services.CooldownService)
 
+local RunHandler = require(ServerScriptService.Server.Services.ActionService.RunHandler)
+
 local remotes = require(ReplicatedStorage.Packages.remotes)
 
 local DashEvent: RemoteEvent = remotes:getEventAsync("Dash")
@@ -90,6 +92,8 @@ function Dash:Dash(char: Model, dir: string)
 
     local dashType = (dir == "Left" or dir == "Right") and "SideDash" or "Dash"
 
+    local wasRunning = RunHandler:WasRunning(char)
+
     local session = ActionSession.new({
         attacker = char,
         actionName = dashType,
@@ -118,6 +122,10 @@ function Dash:Dash(char: Model, dir: string)
     session.extraStopFunction = function()
         if plr then
             UnDashEvent:FireClient(plr)
+        end
+
+        if wasRunning then
+            RunHandler:StartRunning(char, true)
         end
     end
 

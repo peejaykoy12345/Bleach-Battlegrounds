@@ -129,7 +129,7 @@ function Melee:_CreateSession()
     local session = ActionSession.new({
         attacker = self.char,
         actionName = "M1",
-        actionType = "Cooldown",
+        actionType = "Default",
         states = {
             attackerStates = { "M1CantUse" },
             targetStates = { "CantUse" }

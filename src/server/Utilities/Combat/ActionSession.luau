@@ -29,9 +29,9 @@ type statesParams = {
 }
 
 export type ActionSessionParams = {
-    model: Model,
+    attacker: Model,
     actionName: string,
-    actionType: "Cooldown" | "Misc",
+    actionType: "Default" | "Overrideable" | "Cooldown" | "Misc",
     cooldown: cooldownParams,
     states: statesParams
 }
@@ -191,10 +191,10 @@ function ActionSession:Stop(forcestop: boolean?)
     end
 
     if self.extraStopFunction then
-        self.extraStopFunction(self)
+        self.extraStopFunction(self) 
     end
 
-    local plr = Players:GetPlayerFromCharacter(self.attacker)
+    local plr = Players:GetPlayerFromCharacter(self.attacker) -- When buffering input and done with a session try to consume it
     if plr then
         BufferInput.TryConsumeBuffer(plr)
     end
