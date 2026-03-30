@@ -28,7 +28,7 @@ function RunHandler:StopAction(char: Model, params)
 end
 
 function RunHandler:WasRunning(char: Model)
-    return DefaultRun.RunSessions ~= nil
+    return DefaultRun.RunSessions[char] ~= nil
 end
 
 return RunHandler

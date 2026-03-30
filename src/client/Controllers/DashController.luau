@@ -37,6 +37,7 @@ function DashController:StartDash(hrp: BasePart, dir: string)
     if not isGrounded then
         Speed = if isForward then 168.5 * .75 elseif isBackward then 70 else 95
     end
+    
     local int = Speed
     local usedint = int
     local lifetime = if isMain then 1 else 0.15
@@ -72,7 +73,10 @@ function DashController:StartDash(hrp: BasePart, dir: string)
     RunService:BindToRenderStep(bindName, Enum.RenderPriority.Character.Value + 1, function()
         local liveCam = workspace.CurrentCamera.CFrame
         hrp.CFrame = CFrame.lookAt(hrp.Position, hrp.Position + liveCam.LookVector * Vector3.new(1, 0, 1))
-        vel.Velocity = (hrp.CFrame * CFrame.Angles(0, math.rad(alignDirection), 0)).LookVector * usedint
+
+        local grounded = hum and hum.FloorMaterial ~= Enum.Material.Air
+        local airMult = if grounded then 1 else (if isForward then 1 else 95 / 140)
+        vel.Velocity = (hrp.CFrame * CFrame.Angles(0, math.rad(alignDirection), 0)).LookVector * usedint * airMult
     end)
 
     task.spawn(function()
