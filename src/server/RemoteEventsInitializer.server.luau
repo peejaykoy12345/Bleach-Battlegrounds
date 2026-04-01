@@ -5,3 +5,4 @@ local remotes = require(ReplicatedStorage.Packages.remotes)
 
 local DashEvent: RemoteEvent = remotes:getEventAsync("Dash")
 local UndashEvent: RemoteEvent = remotes:getEventAsync("UnDash")
+local StopDashAndPunchInstead: RemoteEvent = remotes:getEventAsync("StopDashAndPunchInstead")

@@ -6,8 +6,11 @@ local UserInputService = game:GetService("UserInputService")
 local Knit = require(ReplicatedStorage.Packages.Knit)
 local remotes = require(ReplicatedStorage.Packages.remotes)
 
+local Hitbox = require(ReplicatedStorage.Shared.Utils.Combat.Hitbox)
+
 local DashEvent: RemoteEvent = remotes:getEventAsync("Dash")
 local UnDashEvent: RemoteEvent = remotes:getEventAsync("UnDash")
+local StopDashAndPunchInstead: RemoteEvent = remotes:getEventAsync("StopDashAndPunchInstead")
 
 local plr = Players.LocalPlayer
 
@@ -17,6 +20,7 @@ local DashController = Knit.CreateController{
 
 function DashController:StartDash(hrp: BasePart, dir: string)
     if not hrp then return end
+    if self.hb then self.hb:Stop() end
 
     local isForward = dir == "Forward"
     local isBackward = dir == "Backward"
@@ -70,6 +74,8 @@ function DashController:StartDash(hrp: BasePart, dir: string)
         end)
     end
 
+    
+
     RunService:BindToRenderStep(bindName, Enum.RenderPriority.Character.Value + 1, function()
         local liveCam = workspace.CurrentCamera.CFrame
         hrp.CFrame = CFrame.lookAt(hrp.Position, hrp.Position + liveCam.LookVector * Vector3.new(1, 0, 1))
@@ -78,6 +84,24 @@ function DashController:StartDash(hrp: BasePart, dir: string)
         local airMult = if grounded then 1 else (if isForward then 1 else 95 / 140)
         vel.Velocity = (hrp.CFrame * CFrame.Angles(0, math.rad(alignDirection), 0)).LookVector * usedint * airMult
     end)
+
+    if dir == "Forward" then
+        task.delay(0.2, function()
+            self.hb = Hitbox.CreateHitbox()
+            self.hb.CFrame = hrp
+            self.hb.Size = Vector3.new(5, 5, 5)
+            self.hb.Visualizer = true
+            self.hb.Offset = CFrame.new(0, 0, -5)
+            self.hb:Start()
+
+            self.hb.Touched:Connect(function(hitChar)
+                if char == hitChar then return end
+
+                StopDashAndPunchInstead:FireServer()
+                self:StopDash(hrp)
+            end)
+        end)
+    end
 
     task.spawn(function()
         while vel.Parent do
@@ -106,6 +130,10 @@ function DashController:StopDash(hrp: BasePart)
     end
     if hrp:FindFirstChild("DashAttachment") then
         hrp:FindFirstChild("DashAttachment"):Destroy()
+    end
+
+    if self.hb then
+        self.hb:Stop()
     end
 end
 

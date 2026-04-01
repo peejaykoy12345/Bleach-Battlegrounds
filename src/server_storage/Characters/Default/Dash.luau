@@ -17,6 +17,7 @@ local remotes = require(ReplicatedStorage.Packages.remotes)
 
 local DashEvent: RemoteEvent = remotes:getEventAsync("Dash")
 local UnDashEvent: RemoteEvent = remotes:getEventAsync("UnDash")
+local StopDashAndPunchInstead: RemoteEvent = remotes:getEventAsync("StopDashAndPunchInstead")
 
 local Dash = {}
 Dash.__index = Dash
@@ -47,7 +48,7 @@ function Dash.CanDash(char: Model, dir): boolean
 end
 
 function Dash:_CreateHitbox(char: Model, session, onTouched, validateHitParams)
-    local hrp = char:FindFirstChild("HumanoidRootPart")
+    local hrp: BasePart = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
     validateHitParams = validateHitParams or self.ValidateHitParams
@@ -56,11 +57,9 @@ function Dash:_CreateHitbox(char: Model, session, onTouched, validateHitParams)
         CFrame = hrp.CFrame * CFrame.new(0, 0, -3)
     })
     session.hitbox = hb
+    hb.Offset = CFrame.new(0, 0, -3)
+    hb.CFrame = hrp
     hb:Start()
-
-    local updateConn = RunService.Heartbeat:Connect(function()
-        hb.CFrame = hrp.CFrame * CFrame.new(0, 0, -3)
-    end)
 
     hb.Touched:Connect(function(hitChar)
         if not MoveUtils:ValidateHit(char, hitChar, validateHitParams) then return end
@@ -69,10 +68,6 @@ function Dash:_CreateHitbox(char: Model, session, onTouched, validateHitParams)
 
         session:InitTarget(hitChar)
         onTouched(hitChar, ehrp)
-    end)
-
-    task.delay(0.2, function()
-        updateConn:Disconnect()
     end)
 end
 
@@ -116,6 +111,8 @@ function Dash:Dash(char: Model, dir: string)
 
     local track = session:PlayAndAddAnimation(char, Dash.Anims[dir], { Priority = 3 })
 
+    local conn
+
     session.extraStopFunction = function()
         if plr then
             UnDashEvent:FireClient(plr)
@@ -124,6 +121,10 @@ function Dash:Dash(char: Model, dir: string)
         if wasRunning then
             RunHandler:StartRunning(char, true)
         end
+
+        if conn then
+            conn:Disconnect()
+        end 
 
         CooldownService:SetCooldown(char, dashType, 1)
     end
@@ -174,6 +175,12 @@ function Dash:Dash(char: Model, dir: string)
         task.delay(trackLength, function()
             punch()
         end)
+
+        StopDashAndPunchInstead.OnServerEvent:Connect(function(plr)
+        if plr.Character and plr.Character == char then
+            punch()
+        end
+    end)
     else
         task.delay(trackLength, function()
             session:Stop()
