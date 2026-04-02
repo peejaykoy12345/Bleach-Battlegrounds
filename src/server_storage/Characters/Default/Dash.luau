@@ -53,7 +53,7 @@ function Dash:_CreateHitbox(char: Model, session, onTouched, validateHitParams)
 
     validateHitParams = validateHitParams or self.ValidateHitParams
 
-    local hb = MoveUtils:CreateStandardHitbox({
+    --[[local hb = MoveUtils:CreateStandardHitbox({
         CFrame = hrp.CFrame * CFrame.new(0, 0, -3)
     })
     session.hitbox = hb
@@ -68,6 +68,28 @@ function Dash:_CreateHitbox(char: Model, session, onTouched, validateHitParams)
 
         session:InitTarget(hitChar)
         onTouched(hitChar, ehrp)
+    end)]]
+
+    local plr = Players:GetPlayerFromCharacter(char)
+
+    local hb = MoveUtils:CreateHitbox({
+        CFrame = hrp.CFrame * CFrame.new(0, 0, -3),
+        UseClient = plr,
+        Debug = true,
+        WeldedPart = hrp,
+        WeldOffsetCFrame = CFrame.new(0, 0, -3),
+    })
+    session.hitbox = hb
+    hb:Start()
+    hb.HitSomeone:Connect(function(hitChars)
+        for _, hitChar in ipairs(hitChars) do
+            if not MoveUtils:ValidateHit(char, hitChar, validateHitParams) then continue end
+            local ehrp = hitChar:FindFirstChild("HumanoidRootPart")
+            if not ehrp then continue end
+
+            session:InitTarget(hitChar)
+            onTouched(hitChar)
+        end
     end)
 end
 

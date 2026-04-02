@@ -1,10 +1,12 @@
 local Debris = game:GetService("Debris")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local UtilitiesFolder = ServerScriptService.Server.Utilities
 local CombatUtilities = UtilitiesFolder.Combat
 local Hitbox = require(CombatUtilities.Hitbox)
+local HitboxClass = require(ReplicatedStorage.Packages.HitboxClass)
 local CooldownService = require(ServerScriptService.Server.Services.CooldownService)
 local StateManager = require(CombatUtilities.StateManager)
 local BlockUtils = require(CombatUtilities.BlockUtils)
@@ -22,20 +24,36 @@ function MoveUtils:CreateStandardHitbox(config)
 	return hitbox
 end
 
+export type CreateHitboxConfig = {
+	SizeOrPart: Vector3 | BasePart?,
+	CFrame: CFrame,
+	Debug: boolean?,
+	UseClient: Player?,
+	WeldedPart: Part?,
+	WeldOffsetCFrame: CFrame?, 
+}
+
+function MoveUtils:CreateHitbox(custom_config: CreateHitboxConfig)
+	local config = {
+		SizeOrPart = custom_config.SizeOrPart or Vector3.new(4, 4, 4),
+		UseClient = custom_config.UseClient,
+		Debug = custom_config.Debug ~= false,
+	}
+
+	local hitbox, connected = HitboxClass.new(config)
+	print(connected, " is connected")
+	hitbox:SetPosition(custom_config.CFrame)
+
+	if custom_config.WeldedPart then
+		hitbox:WeldTo(custom_config.WeldedPart, custom_config.WeldOffsetCFrame or CFrame.new(0, 0, 0))
+	end
+
+	return hitbox
+end
+
 function MoveUtils:WeldHitboxToPart(part: BasePart, hb, offset: CFrame, delayUntilRemoval: number)
-	--[[offset = offset or CFrame.new(0, 0, -3)
-	local updateConn = RunService.Stepped:Connect(function()
-        hb.CFrame = part.CFrame * offset
-    end)
-
-	task.delay(delayUntilRemoval or .2, function()
-		updateConn:Disconnect()
-	end)]]
-
 	hb.CFrame = part
 	hb.Offset = offset
-	
-	--return updateConn
 end
 
 function MoveUtils:CanPerformAction(char: Model, actionName: string, params): boolean
