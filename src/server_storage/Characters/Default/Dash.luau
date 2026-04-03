@@ -43,7 +43,6 @@ function Dash.CanDash(char: Model, dir): boolean
         return true
     else
         local CanPerformAction = MoveUtils:CanPerformAction(char, dashType, { statesToSkip = { "Ragdoll" } })
-        print("CanPerformAction:", CanPerformAction, "states:", StateManager.GetStates and StateManager.GetStates(char))
         return CanPerformAction
     end
 end
@@ -143,8 +142,6 @@ function Dash:Dash(char: Model, dir: string)
         trackLength -= .2
     end
 
-    print("Passed")
-
     if dir == "Forward" then
         track:AdjustSpeed(.7)
 
@@ -177,7 +174,6 @@ function Dash:Dash(char: Model, dir: string)
             end)
 
             task.delay(newTrackLength, function()
-                print("Session stoppwed")
                 session:Stop()
             end)
         end
