@@ -385,10 +385,7 @@ function Signal:Wait()
 
 	self:Once(function(...)
 		yieldedThreads[thread] = nil
-
-		if coroutine.status(thread) == "suspended" then
-			task.spawn(thread, ...)
-		end
+		task.spawn(thread, ...)
 	end)
 
 	return coroutine.yield()

@@ -34,6 +34,7 @@ export type CreateHitboxConfig = {
 }
 
 function MoveUtils:CreateHitbox(custom_config: CreateHitboxConfig)
+	print('creating hitbox')
 	local config = {
 		SizeOrPart = custom_config.SizeOrPart or Vector3.new(4, 4, 4),
 		UseClient = custom_config.UseClient,
@@ -41,7 +42,7 @@ function MoveUtils:CreateHitbox(custom_config: CreateHitboxConfig)
 	}
 
 	local hitbox, connected = HitboxClass.new(config)
-	print(connected, " is connected")
+	print('created')
 	hitbox:SetPosition(custom_config.CFrame)
 
 	if custom_config.WeldedPart then
@@ -68,16 +69,9 @@ function MoveUtils:CanPerformAction(char: Model, actionName: string, params): bo
 		return false
 	end
 
-	if actionName ~= "M1" then
-		print(actionName)
-	end
-
 	if CooldownService:IsOnCooldown(char, actionName) then
+		print(actionName)
 		return false
-	end
-
-	if actionName ~= "M1" then
-		print(actionName .. "has passed cooldwon")
 	end
 	
 	return true

@@ -43,6 +43,7 @@ function Dash.CanDash(char: Model, dir): boolean
         return true
     else
         local CanPerformAction = MoveUtils:CanPerformAction(char, dashType, { statesToSkip = { "Ragdoll" } })
+        print("CanPerformAction:", CanPerformAction, "states:", StateManager.GetStates and StateManager.GetStates(char))
         return CanPerformAction
     end
 end
@@ -53,28 +54,12 @@ function Dash:_CreateHitbox(char: Model, session, onTouched, validateHitParams)
 
     validateHitParams = validateHitParams or self.ValidateHitParams
 
-    --[[local hb = MoveUtils:CreateStandardHitbox({
-        CFrame = hrp.CFrame * CFrame.new(0, 0, -3)
-    })
-    session.hitbox = hb
-    hb.Offset = CFrame.new(0, 0, -3)
-    hb.CFrame = hrp
-    hb:Start()
-
-    hb.Touched:Connect(function(hitChar)
-        if not MoveUtils:ValidateHit(char, hitChar, validateHitParams) then return end
-        local ehrp = hitChar:FindFirstChild("HumanoidRootPart")
-        if not ehrp then return end
-
-        session:InitTarget(hitChar)
-        onTouched(hitChar, ehrp)
-    end)]]
-
     local plr = Players:GetPlayerFromCharacter(char)
 
     local hb = MoveUtils:CreateHitbox({
         CFrame = hrp.CFrame * CFrame.new(0, 0, -3),
         UseClient = plr,
+        SizeOrPart = Vector3.new(4, 4, 4),
         Debug = true,
         WeldedPart = hrp,
         WeldOffsetCFrame = CFrame.new(0, 0, -3),
@@ -158,6 +143,8 @@ function Dash:Dash(char: Model, dir: string)
         trackLength -= .2
     end
 
+    print("Passed")
+
     if dir == "Forward" then
         track:AdjustSpeed(.7)
 
@@ -173,7 +160,7 @@ function Dash:Dash(char: Model, dir: string)
             if newTrackLength <= 0 then
                 newTrackLength = .5
             else
-                newTrackLength -= .1
+                newTrackLength -= .2
             end
 
             self:_CreateHitbox(char, session, function(hitChar, ehrp)
@@ -190,6 +177,7 @@ function Dash:Dash(char: Model, dir: string)
             end)
 
             task.delay(newTrackLength, function()
+                print("Session stoppwed")
                 session:Stop()
             end)
         end

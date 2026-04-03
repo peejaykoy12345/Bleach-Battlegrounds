@@ -20,7 +20,6 @@ function module:HandleAction(plr: Player, params)
     local Default = require(ServerStorage.ServerStorage.Characters.Default.Dash)
 
     local dir = params.dir  
-    print(params.dir)
 
     if not Default.CanDash(char, dir) then
         BufferInput:Press(plr, "Dash", function(plr, params)

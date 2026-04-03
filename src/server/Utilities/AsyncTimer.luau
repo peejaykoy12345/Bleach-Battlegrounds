@@ -17,7 +17,6 @@ function AsyncTimer.new(duration)
 end
 
 function AsyncTimer:OnTimeout()
-    print("OnTimeout")
     if self.running and tick() >= self.endTime then
         self.timeout:Fire()
         self:Stop()

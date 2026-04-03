@@ -26,7 +26,7 @@ local Timer = {}
 
 -- this timer is only reliable on 0.1 timeout threshold or above
 function Timer.new(TimeOut : number, Callback : () -> ())
-	local self = (setmetatable({}, {__index = Timer}) :: unknown) :: IntervalTimer
+	local self = (setmetatable({}, {__index = Timer})) :: IntervalTimer
 	
 	-- set up fields
 	self.TimeOut = TimeOut

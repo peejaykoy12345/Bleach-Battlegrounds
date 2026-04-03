@@ -1,7 +1,7 @@
 --!strict
 
 -----------------------------------------------------------------------
---                         HitboxClass v1.1B                         --
+--                         HitboxClass v1.1A                         --
 -----------------------------------------------------------------------
 -- License:                                                          --
 --   Licensed under the MIT license.                                 --
@@ -24,11 +24,11 @@ local moduleSettings = script.Settings
 
 assert(moduleSettings:FindFirstChild("Alive Folder"), "No Alive Folder setting found in HitboxClass settings! Make an object value and name it 'Alive Folder' and parent it there!")
 
-local aliveFolder = moduleSettings["Alive Folder"].Value or workspace.LivingBeings
+local aliveFolder = moduleSettings["Alive Folder"].Value
 
 assert(moduleSettings:FindFirstChild("Projectile Folder"), "No Projectile Folder setting found in HitboxClass settings! Make an object value and name it 'Projectile Folder' and parent it there!")
 
-local projectileFolder = moduleSettings["Projectile Folder"].Value or workspace.Projectiles
+local projectileFolder = moduleSettings["Projectile Folder"].Value
 
 local velocityConstant = moduleSettings:FindFirstChild("Velocity Prediction Constant")
 
@@ -127,7 +127,7 @@ local function DeepCopyTable(tableToCopy : {})
 end
 
 function Hitbox.new(HitboxParams : Types.HitboxParams)
-	local self = (setmetatable({}, {__index = Hitbox}) :: unknown) :: Types.Hitbox
+	local self = (setmetatable({}, {__index = Hitbox})) :: Types.Hitbox
 
 	self.TaggedChars = {}
 	self.TaggedObjects = {}
@@ -241,6 +241,7 @@ function Hitbox.new(HitboxParams : Types.HitboxParams)
 
 		else 
 			self.Mode =  "Part"
+			print(HitboxParams.SizeOrPart, " ", self)
 			self.Size = HitboxParams.SizeOrPart.Size
 			self.Part = HitboxParams.SizeOrPart:Clone()
 
