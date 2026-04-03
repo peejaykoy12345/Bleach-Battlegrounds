@@ -73,4 +73,6 @@ function AsyncTimer:Reset()
     end
 end
 
-return AsyncTimer
+export type AsyncTimerType = typeof(AsyncTimer.new())
+
+return AsyncTimer :: AsyncTimerType

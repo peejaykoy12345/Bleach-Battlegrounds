@@ -16,7 +16,6 @@ function RunController:KnitStart()
         if gameProcessedEvent then return end
 
         if input.KeyCode == Enum.KeyCode.W then
-            print(pressedW)
             if pressedW then
                 self.ActionService:PerformAction("Run", {run = true})
             else
