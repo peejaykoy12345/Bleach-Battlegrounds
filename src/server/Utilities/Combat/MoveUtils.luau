@@ -1,12 +1,11 @@
 local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local UtilitiesFolder = ServerScriptService.Server.Utilities
 local CombatUtilities = UtilitiesFolder.Combat
 local Hitbox = require(CombatUtilities.Hitbox)
-local HitboxClass = require(ReplicatedStorage.Packages.HitboxClass)
+local HitboxClass = require(ReplicatedStorage.Shared.Utils.Combat.HitboxClass)
 local CooldownService = require(ServerScriptService.Server.Services.CooldownService)
 local StateManager = require(CombatUtilities.StateManager)
 local BlockUtils = require(CombatUtilities.BlockUtils)
@@ -144,7 +143,11 @@ function MoveUtils:RegisterHit(attacker, target)
 end
 
 type ValidateHitParams = {
-	StatesToSkip: {[string]: boolean}
+	StatesToSkip: {[string]: boolean},
+	Block: {
+		Blockable: boolean,
+		BlockAngle: number?
+	}
 }
 
 function MoveUtils:ValidateHit(attacker, target, params: ValidateHitParams?): boolean
@@ -166,7 +169,7 @@ function MoveUtils:ValidateHit(attacker, target, params: ValidateHitParams?): bo
 	end
 
 	if params.Block ~= nil and params.Block.Blockable then
-		local blockAngle = params.blockAngle
+		local blockAngle = params.BlockAngle
 		if BlockUtils.IsBlocking(hrp.Position, target, blockAngle) then return false end
 	end
 

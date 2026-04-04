@@ -33,14 +33,14 @@ version = "1.1.1"
 dependencies = []
 
 [[package]]
-name = "jhoray/bleach-game"
+name = "ivasmigins/replica"
 version = "0.1.0"
-dependencies = [["GoodSignal", "stravant/goodsignal@0.2.1"], ["HitboxClass", "naithss/hitboxclass@1.1.3"], ["Knit", "sleitnick/knit@1.7.0"], ["RaycastHelper", "egomoose/raycast-helper@3.0.1"], ["remotes", "chipioindustries/remotes@2.0.0"], ["ProfileStore", "vyon/profilestore@1.0.3"]]
+dependencies = []
 
 [[package]]
-name = "naithss/hitboxclass"
-version = "1.1.3"
-dependencies = [["signal", "sleitnick/signal@2.0.3"]]
+name = "jhoray/bleach-game"
+version = "0.1.0"
+dependencies = [["GoodSignal", "stravant/goodsignal@0.2.1"], ["Knit", "sleitnick/knit@1.7.0"], ["RaycastHelper", "egomoose/raycast-helper@3.0.1"], ["Replica", "ivasmigins/replica@0.1.0"], ["remotes", "chipioindustries/remotes@2.0.0"], ["ProfileStore", "vyon/profilestore@1.0.3"]]
 
 [[package]]
 name = "sleitnick/comm"

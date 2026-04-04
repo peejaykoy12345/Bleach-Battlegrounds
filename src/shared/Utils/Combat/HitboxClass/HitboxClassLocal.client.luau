@@ -12,7 +12,7 @@ HitboxClassRemote.OnClientEvent:Connect(function(mode, packet)
 	
 	if mode == "Clr" then
 		for i, Hitbox in pairs(currentHitboxes) do
-			Hitbox:Destroy()
+			Hitbox:Destroy()	
 			currentHitboxes[i] = nil
 		end
 		return

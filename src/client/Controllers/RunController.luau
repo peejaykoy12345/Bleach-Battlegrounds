@@ -40,6 +40,4 @@ function RunController:KnitStart()
     end)
 end
 
-local HitboxClass = require(ReplicatedStorage.Packages.HitboxClass)
-
 return RunController
