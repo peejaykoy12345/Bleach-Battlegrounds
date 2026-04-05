@@ -8,7 +8,11 @@ return {
                     value = ByteNetMax.struct({
                         MoveName = ByteNetMax.string,
                         CooldownTime = ByteNetMax.int16,
+                        TimeOfSent = ByteNetMax.int32,
                     })
+                }),
+                InitializeReplica = ByteNetMax.definePacket({
+                    value = ByteNetMax.struct({})
                 })
             },
             queries = {},

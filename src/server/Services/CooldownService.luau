@@ -41,6 +41,7 @@ function CooldownService:SetCooldown(char: Model, action: string, cooldown: numb
         Network.Character.packets.OnMoveCooldown.sendTo({
             MoveName = action,
             CooldownTime = cooldown,
+            TimeOfSent = os.time(),
         }, plr)
     end
 end
