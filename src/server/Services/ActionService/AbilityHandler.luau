@@ -1,0 +1,3 @@
+local AbilityHandler = {}
+
+return AbilityHandler

@@ -1,13 +1,14 @@
 local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 
-local CharacterFolder = ServerStorage.ServerStorage.Characters
+local Utils = require(script.Parent.Utils)
 
 local BlockHandler = {}
 BlockHandler.__index = BlockHandler
 
 function BlockHandler:_HandleBlock(char, params)
-    local module = require(CharacterFolder.Default.Block)
+    local characterName = char:GetAttribute("Character")
+    local module = require(Utils.GetCharacterModule(characterName, "Block"))
 
     local isHold = params.isHold
     if isHold then

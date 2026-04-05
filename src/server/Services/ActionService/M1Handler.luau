@@ -12,14 +12,7 @@ local module = {}
 module.__index = module
 
 function module:_HandleM1(plr)
-    local module = require(CharacterFolder.Default.Melee)
-    
     if MeleeInstances[plr] then
-        MeleeInstances[plr]:M1()
-    else
-        MeleeInstances[plr] = module.new({
-            char = plr.Character
-        }) 
         MeleeInstances[plr]:M1()
     end
 end

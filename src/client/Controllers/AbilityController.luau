@@ -23,7 +23,7 @@ function AbilityController:KnitStart()
 
         local inputString = KeycodeToString[input.KeyCode]
         if inputString then
-            self.ActionService:PerformAction("Move", {input = inputString})
+            self.ActionService:PerformAction("Ability", {input = inputString})
         end
     end)
 end

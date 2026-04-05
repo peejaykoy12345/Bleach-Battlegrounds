@@ -2,7 +2,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local RunHandler = {}
 
-local DefaultRun = require(ServerStorage.ServerStorage.Characters.Default.Run)
+local Utils = require(script.Parent.Utils)
 
 function RunHandler:HandleAction(plr: Player, params)
     params = params or {}
@@ -16,19 +16,28 @@ function RunHandler:HandleAction(plr: Player, params)
 end
 
 function RunHandler:StartRunning(char: Model, run)
+    local characterName = char:GetAttribute("Character")
+    local module = require(Utils.GetCharacterModule(characterName, "Run"))
+    
     if run then
-        DefaultRun:Run(char)
+        module:Run(char)
     else
-        DefaultRun:StopRun(char)
+        module:StopRun(char)
     end
 end
 
 function RunHandler:StopAction(char: Model, params)
-    DefaultRun:StopRun(char)
+    local characterName = char:GetAttribute("Character")
+    local module = require(Utils.GetCharacterModule(characterName, "Run"))
+
+    module:StopRun(char)
 end
 
 function RunHandler:WasRunning(char: Model)
-    return DefaultRun.RunSessions[char] ~= nil
+    local characterName = char:GetAttribute("Character")
+    local module = require(Utils.GetCharacterModule(characterName, "Run"))
+
+    return module.RunSessions[char] ~= nil
 end
 
 return RunHandler
