@@ -10,6 +10,7 @@ function AbilityHandler:HandleAction(plr: Player, params)
     local isUltimate = char:GetAttribute("IsUltimate")
 
     local moves = Utils.GetCharacterMoves(characterName, isUltimate)
+    print(params.input)
     if moves[params.input] then
         local module = require(moves[params.input])
         if module.Run then

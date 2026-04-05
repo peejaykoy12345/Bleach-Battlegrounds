@@ -32,6 +32,8 @@ function CharacterHUDController:_HandleMoveChanges(data)
         button:Destroy()
     end
 
+    print(data, "is moves")
+
     for input, moveName in pairs(data) do
         if input == "Awakening" then continue end
 
@@ -67,14 +69,16 @@ function CharacterHUDController:KnitStart()
         CharacterHUDController:_HandleUltimateChange(awakeningName, replica.Data.Ultimate)
 
         replica:OnSet({"Moves"}, function(newMoves)
-            awakeningName = newMoves.Awakening
+            if newMoves.Awakening ~= nil then
+                awakeningName = newMoves.Awakening
+            end
+            
             CharacterHUDController:_HandleUltimateChange(awakeningName, replica.Data.Ultimate)
             CharacterHUDController:_HandleMoveChanges(newMoves)
         end)
 
         replica:OnSet({"Ultimate"}, function(newUltimate)
-            local awakeningTitle = replica.Data.Moves["Awakening"]
-            CharacterHUDController:_HandleUltimateChange(awakeningTitle, newUltimate)
+            CharacterHUDController:_HandleUltimateChange(awakeningName, newUltimate)
         end)
     end)
 

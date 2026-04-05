@@ -55,6 +55,7 @@ end
 
 function ActionService:GetCharacterMoves(characterName: string, isUltimate: boolean)
     local moves = Utils.GetCharacterMoves(characterName, isUltimate)
+    print("moves is from service", moves)
     return moves
 end
 

@@ -9,7 +9,10 @@ local Network = require(ReplicatedStorage.Shared.Modules.Network)
 local Profiles = require(script.Parent.Profiles)
 
 local ReplicaInstances = {}
-local UltimateCoroutines: {[Player]: thread} = {}
+local UltimateCoroutines: {[Player]: {
+    coroutine: thread,
+    stop: boolean,
+}} = {}
 local HumDiedConnections: {[Player]: RBXScriptConnection} = {}
 
 local CharacterService = Knit.CreateService{
@@ -29,8 +32,6 @@ function CharacterService:_HandleCharacter(player: Player, char, triggered)
         ReplicaInstances[player]:Set({"Character"}, currentCharacter)
         ReplicaInstances[player]:Set({"Moves"}, moves)
     else
-        local hum = char:WaitForChild("Humanoid")
-        hum.Running:Wait()
         ReplicaInstances[player] = Replica.New({
             Token = Replica.Token("CharacterData"),
             Data = {
@@ -128,22 +129,32 @@ function CharacterService:CanStartUltimate(plr: Player)
     local replica = ReplicaInstances[plr]
     if not replica then return end
 
+    print(`Ultimate value: {replica.Data.Ultimate}`)
+
     return replica.Data.Ultimate >= 100
 end
 
 function CharacterService:StartUltimate(plr: Player)
     local char = plr.Character
-    if char then return end
+    if not char then return end
 
     if not self:CanStartUltimate(plr) then return end
 
     char:SetAttribute("IsUltimate", true)
 
-    UltimateCoroutines[plr] = coroutine.create(function()
+    local ultimateMoves = self:GetMoveNames(char:GetAttribute("Character"), true)
+    ReplicaInstances[plr]:Set({"Moves"}, ultimateMoves)
+
+    UltimateCoroutines[plr] = {
+        coroutine = nil,
+        stop = false,
+    }
+    UltimateCoroutines[plr].coroutine = coroutine.create(function()
         while task.wait(1) do
             if not ReplicaInstances[plr] then return end
+            if UltimateCoroutines[plr].stop then return end
 
-            self:AddOrSubtractUltimate(plr, 1, "Subtract")
+            self:AddOrSubtractUltimate(plr, 10, "Subtract")
             if ReplicaInstances[plr].Data.Ultimate  <= 0 then
                 self:StopUltimate(plr)
                 return
@@ -151,17 +162,20 @@ function CharacterService:StartUltimate(plr: Player)
         end
     end)
 
-    coroutine.resume(UltimateCoroutines[plr])
+    coroutine.resume(UltimateCoroutines[plr].coroutine)
 end
 
 function CharacterService:StopUltimate(plr: Player)
-    if UltimateCoroutines[plr] and coroutine.status(UltimateCoroutines[plr]) ~= "dead" then
-        coroutine.close(UltimateCoroutines[plr])
+    if UltimateCoroutines[plr] and UltimateCoroutines[plr].coroutine and coroutine.status(UltimateCoroutines[plr].coroutine) ~= "dead" then
+        UltimateCoroutines[plr].stop = true
         UltimateCoroutines[plr] = nil
     end
 
     local char = plr.Character
     if not char then return end
+
+    local baseMoves = self:GetMoveNames(char:GetAttribute("Character"), false)
+    ReplicaInstances[plr]:Set({"Moves"}, baseMoves)
 
     char:SetAttribute("IsUltimate", false)
 end

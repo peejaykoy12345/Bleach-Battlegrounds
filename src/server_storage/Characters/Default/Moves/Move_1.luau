@@ -14,8 +14,7 @@ function Move_1.Run(char, params)
     print("USED MOVE! Adding ultimate value", char.Name)
     CharacterService:AddUltimateValue(char, 20)
     print("SETTING COOLDOWN! ", char.Name)
-    CooldownService:SetCooldown(char, script.Name, 5)
-    
+    CooldownService:SetCooldown(char, script.Name, 1)
 end
 
 return Move_1

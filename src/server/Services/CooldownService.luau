@@ -13,10 +13,6 @@ local CooldownService = Knit.CreateService {
     Client = {};
 }
 
-function CooldownService:KnitInit()
-    self.Cooldowns = {}
-end
-
 function CooldownService:InitializeCharacter(char: Model)
     self.Cooldowns[char] = {}
 
@@ -31,10 +27,13 @@ function CooldownService:SetCooldown(char: Model, action: string, cooldown: numb
     end
     
     self.Cooldowns[char][action] = true
+
     task.delay(cooldown, function()
         if not self.Cooldowns[char] then return end
         self.Cooldowns[char][action] = nil
     end)
+
+    if not self.moves[action] then return end
 
     local plr = Players:GetPlayerFromCharacter(char)
     if plr then
@@ -54,27 +53,27 @@ function CooldownService:IsOnCooldown(char: Model, action: string): boolean
     return self.Cooldowns[char][action] ~= nil
 end
 
-function CooldownService:KnitStart()
+function CooldownService:KnitInit()
+    self.Cooldowns = {}
     self.moves = {}
 
     for _, folder in ipairs(CharactersFolder:GetChildren()) do
         if not folder:IsA("Folder") then continue end
 
         local MovesModule = folder:FindFirstChild("Moves")
-        if not MovesModule then return end
+        if not MovesModule then continue end
 
         local module = require(MovesModule)
 
         if module.Base then
-            for input, module_script in ipairs(module.Base) do
+            for input, module_script in pairs(module.Base) do
                 if input == "Awakening" then continue end
-
                 self.moves[module_script.Name] = true
             end
         end
 
         if module.Ultimate then
-            for _, module_script in ipairs(module.Ultimate) do
+            for _, module_script in pairs(module.Ultimate) do
                 self.moves[module_script.Name] = true
             end
         end
