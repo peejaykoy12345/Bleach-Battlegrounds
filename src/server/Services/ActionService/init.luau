@@ -54,7 +54,8 @@ function ActionService:CreateMeleeInstance(plr: Player, characterName: string)
 end
 
 function ActionService:GetCharacterMoves(characterName: string, isUltimate: boolean)
-    return Utils.GetCharacterMoves(characterName, isUltimate)
+    local moves = Utils.GetCharacterMoves(characterName, isUltimate)
+    return moves
 end
 
 Players.PlayerRemoving:Connect(function(plr)

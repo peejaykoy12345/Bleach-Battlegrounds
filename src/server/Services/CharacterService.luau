@@ -74,7 +74,7 @@ function CharacterService:GetMoveNames(characterName: string, isUltimate: boolea
 
     local moveNames = {}
 
-    for slot, module_script in ipairs(moves) do
+    for slot, module_script in pairs(moves) do
         moveNames[slot] = module_script.Name
     end
 
