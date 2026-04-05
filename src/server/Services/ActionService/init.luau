@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
 local MeleeInstances = require(script.MeleeInstances)
+local Utils = require(script.Utils)
 
 local Characters = ServerStorage.ServerStorage.Characters
 
@@ -50,6 +51,10 @@ function ActionService:CreateMeleeInstance(plr: Player, characterName: string)
     end
 
     MeleeInstances[plr] = self:_CreateMeleeInstance(char, characterName, CharacterFolder)
+end
+
+function ActionService:GetCharacterMoves(characterName: string, isUltimate: boolean)
+    return Utils.GetCharacterMoves(characterName, isUltimate)
 end
 
 Players.PlayerRemoving:Connect(function(plr)

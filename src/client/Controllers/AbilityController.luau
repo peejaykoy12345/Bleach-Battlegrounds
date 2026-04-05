@@ -22,8 +22,10 @@ function AbilityController:KnitStart()
         if gameProcessedEvent then return end
 
         local inputString = KeycodeToString[input.KeyCode]
-        if inputString then
+        if inputString and inputString ~= "G" then
             self.ActionService:PerformAction("Ability", {input = inputString})
+        elseif inputString == "G" then
+            self.ActionService:PerformAction("Ability", {input = "Awakening"})
         end
     end)
 end

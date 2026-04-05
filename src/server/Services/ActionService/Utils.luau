@@ -24,4 +24,14 @@ function Utils.GetCharacterModule(characterName: string, moduleName: validModule
     return module
 end
 
+function Utils.GetCharacterMoves(characterName: string, isUltimate: boolean)
+    local module = require(Utils.GetCharacterModule(characterName, "Moves"))
+
+    if isUltimate then
+        return module.Ultimate
+    else
+        return module.Base
+    end
+end
+
 return Utils
