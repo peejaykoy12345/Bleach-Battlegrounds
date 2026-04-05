@@ -117,12 +117,15 @@ function CharacterService:StartUltimate(plr: Player)
 
     if not self:CanStartUltimate(plr) then return end
 
+    char:SetAttribute("IsUltimate", true)
+
     UltimateCoroutines[plr] = coroutine.create(function()
         while task.wait(1) do
             if not ReplicaInstances[plr] then return end
 
             ReplicaInstances[plr].Data.Ultimate -= 1
             if ReplicaInstances[plr].Data.Ultimate  <= 0 then
+                self:StopUltimate(plr)
                 return
             end
         end
@@ -136,6 +139,11 @@ function CharacterService:StopUltimate(plr: Player)
         coroutine.close(UltimateCoroutines[plr])
         UltimateCoroutines[plr] = nil
     end
+
+    local char = plr.Character
+    if not char then return end
+
+    char:SetAttribute("IsUltimate", false)
 end
 
 return CharacterService

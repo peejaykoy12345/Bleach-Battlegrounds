@@ -6,6 +6,8 @@ local CharacterHUDController = Knit.CreateController{
     Name = "CharacterHUDController"
 }
 
-
+function CharacterHUDController:KnitStart()
+    
+end
 
 return CharacterHUDController
