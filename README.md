@@ -15,3 +15,198 @@ rojo serve
 ```
 
 For more help, check out [the Rojo documentation](https://rojo.space/docs).
+
+# Tutorial how to add characters.
+
+1. First create a character folder in server_storage/Characters.
+
+1.1 Example:
+
+``` lua
+local Default = path.to.default
+local DefaultMelee = Default.Melee
+
+local Melee = setmetatable({}, DefaultMelee) -- Inherit all the things Melee has
+
+return Melee
+```
+
+Usually you will only be changing m1 animations so just modify the variables.
+
+``` lua
+Melee.M1anims = {
+    [1] = 109332345017518,
+    [2] = 116598628098678,
+    [3] = 88790772873415,
+    [4] = 137132189634903,
+}
+```
+
+Another example, modifying the dash module:
+
+``` lua
+local Default = path.to.default
+local DefaultDash = Default.Dash
+
+local Dash = setmetatable({}, DefaultDash) -- Inherit all the things Dash has
+
+return Dash
+```
+
+Moving on to the moves.
+
+1. Create a folder in the characters folder called "Moves".
+
+Then add an init.luau, paste this template in
+
+``` lua
+local Moves = {
+    -- Name the scripts the name of the move though, 
+    Base = {
+        ["1"] = script.Move_1,
+        ["2"] = script.Move_2,
+        ["3"] = script.Move_3,
+        ["4"] = script.Move_4,
+        ["Awakening"] = script.Awakening,
+    },
+    Ultimate = {
+        ["1"] = script.Ultimate_Move_1,
+        ["2"] = script.Ultimate_Move_2,
+        ["3"] = script.Ultimate_Move_3,
+        ["4"] = script.Ultimate_Move_4
+    }
+}
+
+return Moves
+```
+
+Then when creating a move add a module and name it the name of the move
+
+``` lua
+local Moves = {
+    -- Name the scripts the name of the move though, 
+    Base = {
+        ["1"] = script.Movename,
+    },
+    Ultimate = {} -- Keep this table
+}
+```
+
+Then on the module paste this template in:
+
+``` lua
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local ServicesFolder = ServerScriptService.Server.Services
+local CharacterService = require(ServicesFolder.CharacterService)
+local CooldownService = require(ServicesFolder.CooldownService)
+local ClientFXService = require(ServicesFolder.ClientFXService)
+local AnimationService = require(ServicesFolder.AnimationService)
+
+local UtilitiesFolder = ServerScriptService.Server.Utilities
+local CombatUtils = UtilitiesFolder.Combat
+local MoveUtils = require(CombatUtils.MoveUtils)
+local ActionSession = require(CombatUtils.ActionSession)
+local DamageUtils = require(CombatUtils.DamageUtils)
+
+local Move_1 = {}
+
+function Move_1.Run(char, params)
+    if not MoveUtils:CanPerformAction(char, script.Name) then return end -- Checks for cooldowns and states
+
+    --[[print("USED MOVE! Adding ultimate value", char.Name)
+    CharacterService:AddUltimateValue(char, 20)
+    print("SETTING COOLDOWN! ", char.Name)
+    CooldownService:SetCooldown(char, script.Name, 1)]]
+
+    
+
+    local session = ActionSession.new({
+        attacker = char,
+        actionName = script.Name,
+        actionType = "Default",
+        states = {
+            attackerStates = {"CantUse"}, -- So that someone cant stack moves (This is added to the attacker on Start)
+            targetStates = {}, -- Added to the target on session:InitTarget(target)
+            sharedStates = {}, -- Added to attacker on Start and added to target on session:InitTarget(target)
+        }
+    })
+    if not session then return end
+    session:Start()
+
+    -- To play an animation do this:
+    -- (target, animId, ...) -> AnimationTrack
+    -- This makes it so that the track is referenced in session and will be stopped at session:Stop(true) -- true meaning forcestop (which stops animations, vfx, etc)
+    local track = session:PlayAndAddAnimation(char, id)
+
+    -- To create a hitbox
+
+    --[[export type CreateHitboxConfig = {
+        SizeOrPart: Vector3 | BasePart?, -- size obviously
+        CFrame: CFrame, -- Start CFrame
+        Debug: boolean?, -- Visualize hitbox
+        UseClient: Player?, -- To simulate client hixboes (use only if really needed, resort to nil if not needed)
+        WeldedPart: Part?, -- A part to weld to (usually the hrp)
+        WeldOffsetCFrame: CFrame?, -- The offset 
+    }]]
+
+    local hb = MoveUtils:CreateHitbox({
+        CreateHitboxConfig -- Fill up
+    })
+
+    -- Reference the hitbox so it gets stopped in session:Stop()
+    session.hitbox = hb
+
+    -- These are the constants from StateManager
+    --[[local RESTRICTED_ACTION_STATES = { -- States to check for ValidateMoveRequirements
+        "CantUse",
+        "InCutscene",
+        "Stunned",
+        "Blocking",
+        "M1CantUse",
+        "DashCantUse",
+        "Ragdoll",
+    }
+
+    local INVINCIBLE_STATES = { -- For ValidateHit
+        "IFrames",
+        "Ragdoll",
+        "AwakeningIFrames",
+        "SpawnIFrames",
+    }]]
+
+
+    --[[type ValidateHitParams = {
+        StatesToSkip: {[string]: boolean}, -- States to skip when checking (Invisibility states)
+        Block: {
+            Blockable: boolean, -- Set to true if blockable
+            BlockAngle: number? -- Default to infront if not put
+        }
+    }]]
+
+    hb:Start()
+    hb.HitSomeone:Connect(function(hitChars)
+        for _, hitchar in ipairs(hitChars) do
+            if not MoveUtils:ValidateHit(char, hitchar, ValidateHitParams) then return end
+
+            session:InitTarget(hitChar) -- This one does all types of stuff (check for more info) call this after validating
+            DamageUtils:ValidateAndDamage(char, hitchar, 20) -- (attacker, target, damage)
+            CharacterService:AddUltimateValue(char, 20) -- Max is 100 btw
+            -- Modules are in src/client_fx
+            -- Only folder for now is Combat 
+            ClientFXService:Start({
+                 Name = "Hit", -- Name of client fx module 
+                 Type = "Combat" -- Folder that it is in in client_fx
+                }, 
+                {
+                     target = hitChar -- The params the module takes (for more info check the modules)
+                })
+        end
+    end)
+
+    session:Stop() -- TO stop the move session
+end
+
+return Move_1
+
+```

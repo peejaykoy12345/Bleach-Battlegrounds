@@ -67,7 +67,6 @@ function MoveUtils:CanPerformAction(char: Model, actionName: string, params): bo
 	end
 
 	if CooldownService:IsOnCooldown(char, actionName) then
-		print(actionName)
 		return false
 	end
 	

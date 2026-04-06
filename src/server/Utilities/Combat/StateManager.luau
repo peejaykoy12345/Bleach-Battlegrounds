@@ -127,7 +127,6 @@ function StateManager.isCharacterInvincible(char: Model, statesToSkip: {string}?
 		if statesToSkip and statesToSkip[state] then continue end
 		
 		if StateManager.HasState(char, state) then
-			print(`{char.Name} == {state}`)
 			return true
 		end
 	end

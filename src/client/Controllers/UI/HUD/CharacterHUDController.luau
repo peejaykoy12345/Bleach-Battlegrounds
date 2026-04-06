@@ -32,8 +32,6 @@ function CharacterHUDController:_HandleMoveChanges(data)
         button:Destroy()
     end
 
-    print(data, "is moves")
-
     for input, moveName in pairs(data) do
         if input == "Awakening" then continue end
 

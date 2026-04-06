@@ -110,7 +110,6 @@ function CharacterService:AddOrSubtractUltimate(plr: Player, value: number, oper
     
     if operation == "Add" then
         local currentValue = math.min(ReplicaInstances[plr].Data.Ultimate + value, 100)
-        print(currentValue, " is current ultimate value")
         ReplicaInstances[plr]:Set({"Ultimate"}, currentValue)
     else
         local currentValue = math.max(0, ReplicaInstances[plr].Data.Ultimate - value)
@@ -128,8 +127,6 @@ end
 function CharacterService:CanStartUltimate(plr: Player)
     local replica = ReplicaInstances[plr]
     if not replica then return end
-
-    print(`Ultimate value: {replica.Data.Ultimate}`)
 
     return replica.Data.Ultimate >= 100
 end
