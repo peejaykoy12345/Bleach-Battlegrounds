@@ -210,7 +210,7 @@ function Melee:M1()
         hitboxFired = true
 
         self:_CreateHitbox(session, function(hitChar, ehrp)
-            hitChar.Humanoid:TakeDamage(10)
+            DamageUtils:ValidateAndDamage(self.char, hitChar, 10)
             StunService:Stun(hitChar, {
                 stunPriority = 2,
                 stunDuration = 1,
@@ -339,7 +339,7 @@ function Melee:Downslam()
         hitboxFired = true
 
         self:_CreateHitbox(session, function(hitChar, ehrp)
-            hitChar.Humanoid:TakeDamage(10)
+           DamageUtils:ValidateAndDamage(self.char, hitChar, 10)
             StunService:Stun(hitChar, {
                 stunPriority = 2,
                 stunDuration = 1,

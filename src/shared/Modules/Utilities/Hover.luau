@@ -6,7 +6,7 @@ local HoverService = {}
 
 local CharData = {}
 
-local DEFAULT_HEIGHT = 10
+local DEFAULT_HEIGHT = 1
 local DEFAULT_DURATION = 10
 
 function HoverService:Enable(char: Model, duration: number?, height: number?)
