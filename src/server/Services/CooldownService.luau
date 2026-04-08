@@ -46,6 +46,10 @@ function CooldownService:SetCooldown(char: Model, action: string, cooldown: numb
 end
 
 function CooldownService:IsOnCooldown(char: Model, action: string): boolean
+    if not self.Cooldowns then
+        return false
+    end
+    
     if not self.Cooldowns[char] then
         return false
     end

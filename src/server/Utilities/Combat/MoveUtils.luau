@@ -149,8 +149,10 @@ type ValidateHitParams = {
 	StatesToSkip: {[string]: boolean},
 	Block: {
 		Blockable: boolean,
-		BlockAngle: number?
-	}
+		BlockAngle: number?,
+		ProjectilePart: BasePart?,
+		CheckOffset: BasePart?
+	},
 }
 
 function MoveUtils:EmitEveryParticleEmitter(part: BasePart | Attachment)
@@ -184,9 +186,20 @@ function MoveUtils:ValidateHit(attacker, target, params: ValidateHitParams?): bo
 		return false
 	end
 
-	if params.Block ~= nil and params.Block.Blockable then
-		local blockAngle = params.BlockAngle
-		if BlockUtils.IsBlocking(hrp.Position, target, blockAngle) then return false end
+	if params then
+		if params.Block ~= nil and params.Block.Blockable then
+			local blockAngle = params.Block.BlockAngle
+
+			local position: Vector3
+
+			if params.Block.ProjectilePart then 
+				position = hrp.Position + params.Block.CheckOffset
+			else
+				position = hrp.Position
+			end
+			
+			if BlockUtils.IsBlocking(position, target, blockAngle) then return false end
+		end
 	end
 
 	return true

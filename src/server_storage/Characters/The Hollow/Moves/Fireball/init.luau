@@ -18,6 +18,7 @@ local DamageUtils = require(CombatUtils.DamageUtils)
 local VelocityUtils = require(CombatUtils.Velocity)
 local EffectUtils = require(CombatUtils.EffectUtils)
 local Pooling = require(ReplicatedStorage.Shared.Modules.Utilities.Pooling)
+local Velocity = require(CombatUtils.Velocity)
 
 local Fireball = {}
 
@@ -27,6 +28,10 @@ local CONFIG = {
     EFFECT_DURATION = 5,
     COOLDOWN = 10,
     ULTIMATE_ADDED = 5,
+    KNOCKBACK = {
+        ZAxis = 25,
+        YAxis = 15,
+    },
 }
 
 local ASSETS = {
@@ -39,7 +44,7 @@ local ASSETS = {
     },
 }
 
-function Fireball.CreateHitbox(session, fireball, onTouched)
+function Fireball.CreateHitbox(session, fireball, onTouched, onAnyTouch)
     local hb = MoveUtils:CreateHitbox({
         CFrame = fireball.CFrame,
         SizeOrPart = Vector3.new(6, 6, 6),
@@ -50,10 +55,16 @@ function Fireball.CreateHitbox(session, fireball, onTouched)
 
     hb.HitSomeone:Connect(function(hitChars)
         for _, hitChar in ipairs(hitChars) do
-            if not MoveUtils:ValidateHit(session.attacker, hitChar, {Block = {IS_BLOCKABLE = true}}) then continue end
+            if session.attacker == hitChar then return end
+            onAnyTouch()
+
+            if not MoveUtils:ValidateHit(session.attacker, hitChar, {Block = {Blockable = true, ProjectilePart = fireball, CheckOffset = Vector3.new(0, 0, 3)}}) then continue end
+
+            local ehrp = hitChar:FindFirstChild("HumanoidRootPart")
+            if not ehrp then return end
 
             session:InitTarget(hitChar)
-            onTouched(hitChar)
+            onTouched(hitChar, ehrp)
         end
     end)
 
@@ -98,11 +109,19 @@ function Fireball.Run(char, params)
     local lv
     local att
 
-    local function onTouched(hitChar)
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    local function onTouched(hitChar, ehrp)
         DamageUtils:ValidateAndDamage(char, hitChar, CONFIG.DAMAGE)
         EffectUtils:ApplyEffect(hitChar, "Fire", CONFIG.EFFECT_DURATION)
 
         CharacterService:AddUltimateValue(char, CONFIG.ULTIMATE_ADDED)
+
+        MoveUtils:RagdollCharacter(hitChar, 2, true)
+
+        local bv = Velocity.CreateBV(ehrp, Vector3.new(math.huge, math.huge, math.huge))
+        bv.Velocity = (hrp.CFrame.LookVector * CONFIG.KNOCKBACK.ZAxis) + (hrp.CFrame.UpVector * CONFIG.KNOCKBACK.YAxis)
+        Debris:AddItem(bv, 0.2)
 
         if fireball then
             Pooling.Return(fireball, ASSETS.VFX.Fireball)
@@ -121,7 +140,23 @@ function Fireball.Run(char, params)
         end
     end
 
-    local hrp = char.HumanoidRootPart
+    local function onAnyTouch()
+        if fireball then
+            Pooling.Return(fireball, ASSETS.VFX.Fireball)
+        end
+
+        if att then
+            att:Destroy()
+        end
+
+        if lv then
+            lv:Destroy()
+        end
+
+        if hb then
+            hb:Stop()
+        end
+    end
 
     local markers = {
         ["Fireball"] = function()
@@ -130,7 +165,7 @@ function Fireball.Run(char, params)
             fireball.CFrame = char.Head.CFrame * CFrame.new(0, 0, -2)
             
             lv, att = Fireball.ApplyLinearVelocity(fireball, hrp.CFrame.LookVector)
-            hb = Fireball.CreateHitbox(session, fireball, onTouched)
+            hb = Fireball.CreateHitbox(session, fireball, onTouched, onAnyTouch)
 
             fireball.Parent = workspace.Assets.VFX
 

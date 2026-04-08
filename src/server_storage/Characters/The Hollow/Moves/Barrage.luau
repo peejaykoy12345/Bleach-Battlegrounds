@@ -57,7 +57,7 @@ function Barrage.CreateHitbox(session, hrp, onTouched)
 
     hb.HitSomeone:Connect(function(hitChars)
         for _, hitChar in ipairs(hitChars) do
-            if not MoveUtils:ValidateHit(session.attacker, hitChar, {Block = {IS_BLOCKABLE = true}}) then continue end
+            if not MoveUtils:ValidateHit(session.attacker, hitChar, {Block = {Blockable = true}}) then continue end
 
             session:InitTarget(hitChar)
             onTouched(hitChar)
