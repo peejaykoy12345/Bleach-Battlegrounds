@@ -34,7 +34,8 @@ local ASSETS = {
         ATTACKER = 98157898468817,
     },
     VFX = {
-        Fireball = script.Fireball
+        Fireball = script.Fireball,
+        Activation = ReplicatedStorage["Assets (New)"].Gabi.FireActivationVFX,
     },
 }
 
@@ -44,6 +45,7 @@ function Fireball.CreateHitbox(session, fireball, onTouched)
         SizeOrPart = Vector3.new(6, 6, 6),
         WeldedPart = fireball,
         DebounceTime = 0.1,
+        VelocityPredictionFactor = -5,
     })
 
     hb.HitSomeone:Connect(function(hitChars)
@@ -85,6 +87,11 @@ function Fireball.Run(char, params)
     session:Start()
 
     local track: AnimationTrack = session:PlayAndAddAnimation(char, ASSETS.ANIMATIONS.ATTACKER)
+
+    ClientFXService:Start({ Name = "EmitParticles", Type = "Combat" }, {
+        parent = char.HumanoidRootPart,
+        particleContainer = ASSETS.VFX.Activation,
+    })
 
     local fireball: BasePart
     local hb

@@ -31,6 +31,7 @@ export type CreateHitboxConfig = {
 	WeldedPart: Part?,
 	WeldOffsetCFrame: CFrame?, 
 	DebounceTime: number?,
+	VelocityPredictionFactor: number?
 }
 
 function MoveUtils:CreateHitbox(custom_config: CreateHitboxConfig)
@@ -39,6 +40,7 @@ function MoveUtils:CreateHitbox(custom_config: CreateHitboxConfig)
 		UseClient = custom_config.UseClient,
 		DebounceTime = custom_config.DebounceTime,
 		Debug = custom_config.Debug ~= false,
+		VelocityPredictionFactor = custom_config.VelocityPredictionFactor
 	}
 
 	local hitbox, connected = HitboxClass.new(config)
@@ -150,6 +152,19 @@ type ValidateHitParams = {
 		BlockAngle: number?
 	}
 }
+
+function MoveUtils:EmitEveryParticleEmitter(part: BasePart | Attachment)
+	for _, particleEmitter in pairs(part:GetDescendants()) do
+		if not particleEmitter:IsA("ParticleEmitter") then continue end
+		
+		task.spawn(function()
+			task.wait(0.05)
+			local emitCount = particleEmitter:GetAttribute("EmitCount")
+			particleEmitter:Emit(emitCount)
+		end)
+		
+	end
+end
 
 function MoveUtils:ValidateHit(attacker, target, params: ValidateHitParams?): boolean
 	params = params or {}

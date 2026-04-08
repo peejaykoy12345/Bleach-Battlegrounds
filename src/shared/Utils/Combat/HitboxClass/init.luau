@@ -150,6 +150,8 @@ function Hitbox.new(HitboxParams : Types.HitboxParams)
 	self.HitSomeone = signal.new()
 	self.HitObject = signal.new()
 
+	self.VelocityPredictionFactor = HitboxParams.VelocityPredictionFactor or velocityConstant.Value or 6
+
 	self.DebugMode = HitboxParams.Debug or false
 	
 	self.Lifetime = HitboxParams.Debris or 0
@@ -562,19 +564,12 @@ function Hitbox:SetPosition(newPosition : CFrame)
 		HitboxRemote:FireClient(self.Client, "PosCh", {_Tick = self.TickVal, Position = newPosition})
 	end
 
-	local constant
-
-	if velocityConstant then
-		constant = velocityConstant.Value or 6
-	else
-		constant = 6
-	end
+	local predFact = self.VelocityPredictionFactor or 6
 
 	if RunService:IsServer() and self.PartWeld and self.VelocityPrediction then
-		local velocityVector =  newPosition:VectorToObjectSpace(self.PartWeld.AssemblyLinearVelocity) / constant
+		local velocityVector =  newPosition:VectorToObjectSpace(self.PartWeld.AssemblyLinearVelocity) / predFact
 		newPosition = newPosition * CFrame.new(velocityVector)
 	end
-
 
 	self.Position = newPosition
 

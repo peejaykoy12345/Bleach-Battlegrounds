@@ -41,6 +41,7 @@ function CharacterHUDController:_HandleMoveChanges(data)
         button.Frame.Order.Text = input
         button.Visible = true
         button.Parent = CooldownFrame
+        button.LayoutOrder = tostring(input)
     end
 end
 

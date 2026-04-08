@@ -75,6 +75,7 @@ function ActionSession.new(params: ActionSessionParams)
     self.options = params
 
     self.connections = {}
+    self.hitboxes = {}
 
     self.stopped = false
 
@@ -186,6 +187,13 @@ function ActionSession:Stop(forcestop: boolean?)
     if self.hitbox then
         self.hitbox:Stop()
         self.hitbox = nil
+    end
+
+    if self.hitboxes then
+        for _, hitbox in ipairs(self.hitboxes) do
+            hitbox:Stop()
+        end
+        self.hitboxes = nil
     end
 
     if self.cooldown then

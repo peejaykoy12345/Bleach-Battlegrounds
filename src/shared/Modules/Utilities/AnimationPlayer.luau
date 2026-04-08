@@ -84,7 +84,6 @@ function AnimationPlayer:Stop(character: Model, animationId: string)
 end
 
 function AnimationPlayer:StopAnimation(track: AnimationTrack)
-    print(track, " is stopped?")
     track:Stop()
 end
 
