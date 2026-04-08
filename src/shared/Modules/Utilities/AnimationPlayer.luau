@@ -38,7 +38,7 @@ local function setupCleanup(character: Model)
     end)
 end
 
-function AnimationPlayer:Play(character: Model, animationId: string, playOptionsParams: {Priority: number}? )
+function AnimationPlayer:Play(character: Model, animationId: number, playOptionsParams: {Priority: number}? )
     playOptionsParams = playOptionsParams or {}
 
     local animator = getAnimator(character)

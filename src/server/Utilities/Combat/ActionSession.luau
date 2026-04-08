@@ -32,8 +32,22 @@ export type ActionSessionParams = {
     attacker: Model,
     actionName: string,
     actionType: "Default" | "Overrideable" | "Cooldown" | "Misc",
-    cooldown: cooldownParams,
-    states: statesParams
+    cooldown: cooldownParams?,
+    states: statesParams?,
+    properties: {
+        attackerProperties: {
+            ["AutoRotate"]: boolean?,
+            ["Anchored"]: boolean?
+        },
+        sharedProperties: {
+            ["AutoRotate"]: boolean?,
+            ["Anchored"]: boolean?
+        },
+        targetProperties: {
+            ["AutoRotate"]: boolean?,
+            ["Anchored"]: boolean?
+        },
+    }?
 }
 
 local CharacterAttackSessions = {}
@@ -70,12 +84,14 @@ function ActionSession.new(params: ActionSessionParams)
     self.actionType = params.actionType
     self.cooldown = params.cooldown
     self.states = params.states
+    self.properties = params.properties
     self.animations = {}
     self.targets = {}
     self.options = params
 
     self.connections = {}
     self.hitboxes = {}
+    self.welds = {}
 
     self.stopped = false
 
@@ -97,9 +113,22 @@ function ActionSession:InitTarget(target: Model)
     self:SetStatesTo(target, self.states.sharedStates)
     self:SetStatesTo(target, self.states.targetStates)
 
+    if self.properties then
+        self:_ApplyPropertiesTo(target, self.properties.sharedProperties)
+        self:_ApplyPropertiesTo(target, self.properties.targetProperties)
+    end
+
     MoveUtils:RegisterHit(self.attacker, target)
 
     table.insert(self.targets, target)
+end
+
+function ActionSession:WeldParts(primary: BasePart, part: BasePart, weldName: "Weld" | "WeldConstraint" | "Motor6D"): Weld | WeldConstraint | Motor6D
+	local weld = MoveUtils:WeldParts(primary, part, weldName)
+    
+    table.insert(self.welds, weld)
+
+    return weld
 end
 
 -------------------
@@ -121,7 +150,7 @@ function ActionSession:AddAnimation(animation: Animation)
     table.insert(self.animations, animation)
 end
 
-function ActionSession:StopAnimation(animation: Animation)
+function ActionSession:StopAnimation(animation: AnimationTrack)
     TableUtils:ArrayRemove(self.animations, animation)
     AnimationPlayer:StopAnimation(animation)
 end
@@ -149,6 +178,36 @@ function ActionSession:RemoveStatesTo(target: Model, states)
     end
 end
 
+function ActionSession:_ApplyPropertiesTo(target: Model, props: {[string]: any}?)
+    if not props then return end
+
+    local humanoid = target:FindFirstChildOfClass("Humanoid")
+    local hrp = target:FindFirstChild("HumanoidRootPart")
+
+    if props.AutoRotate == false and humanoid then
+        humanoid.AutoRotate = false
+    end
+
+    if props.Anchored == true and hrp then
+        hrp.Anchored = true
+    end
+end
+
+function ActionSession:_RemovePropertiesFrom(target: Model, props: {[string]: any}?)
+    if not props then return end
+
+    local humanoid = target:FindFirstChildOfClass("Humanoid")
+    local hrp = target:FindFirstChild("HumanoidRootPart")
+
+    if props.AutoRotate == false and humanoid then
+        humanoid.AutoRotate = true
+    end
+
+    if props.Anchored == true and hrp then
+        hrp.Anchored = false
+    end
+end
+
 function ActionSession:BulkAddConnections(connections: {RBXScriptConnection})
     for _, connection in connections do
         table.insert(self.connections, connection)
@@ -169,6 +228,11 @@ function ActionSession:Start()
         if states.attackerStates then
             self:SetStatesTo(self.attacker, states.attackerStates)
         end
+    end
+
+    if self.properties then
+        self:_ApplyPropertiesTo(self.attacker, self.properties.attackerProperties)
+        self:_ApplyPropertiesTo(self.attacker, self.properties.sharedProperties)
     end
 end
 
@@ -210,8 +274,22 @@ function ActionSession:Stop(forcestop: boolean?)
         end
     end
 
+    if self.properties then
+        self:_RemovePropertiesFrom(self.attacker, self.properties.attackerProperties)
+        self:_RemovePropertiesFrom(self.attacker, self.properties.sharedProperties)
+
+        for _, target in ipairs(self.targets) do
+            self:_RemovePropertiesFrom(target, self.properties.sharedProperties)
+            self:_RemovePropertiesFrom(target, self.properties.targetProperties)
+        end
+    end
+
     for _, connection in ipairs(self.connections) do
         connection:Disconnect()
+    end
+
+    for _, weld in ipairs(self.welds) do
+        weld:Destroy()
     end
 
     if self.extraStopFunction then
@@ -226,6 +304,6 @@ function ActionSession:Stop(forcestop: boolean?)
     self = nil
 end
 
-export type ActionSessionType = typeof(ActionSession.new())
+export type ActionSessionType = typeof(ActionSession)
 
 return ActionSession :: ActionSessionType

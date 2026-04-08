@@ -168,6 +168,14 @@ function MoveUtils:EmitEveryParticleEmitter(part: BasePart | Attachment)
 	end
 end
 
+function MoveUtils:WeldParts(primary: BasePart, part: BasePart, weldName: "Weld" | "WeldConstraint" | "Motor6D"): Weld | WeldConstraint | Motor6D
+	local weld = Instance.new(weldName, primary)
+	weld.Part0 = primary
+	weld.Part1 = part
+
+	return weld
+end
+
 function MoveUtils:ValidateHit(attacker, target, params: ValidateHitParams?): boolean
 	params = params or {}
 
