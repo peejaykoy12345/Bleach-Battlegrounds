@@ -6,7 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage.Packages.Knit)
 
 -- Services
-local AnimationService = require(ServerScriptService.Server.Services.AnimationService)
+local AnimationPlayer = require(ReplicatedStorage.Shared.Modules.Utilities.AnimationPlayer)
 local CooldownService = require(ServerScriptService.Server.Services.CooldownService)
 
 -- Utils
@@ -74,6 +74,8 @@ function ActionSession.new(params: ActionSessionParams)
     self.targets = {}
     self.options = params
 
+    self.connections = {}
+
     self.stopped = false
 
     table.insert(CharacterAttackSessions[self.attacker], self)
@@ -108,7 +110,7 @@ type playOptionsParams = {
 }
 
 function ActionSession:PlayAndAddAnimation(char: Model, animationId: number, playOptions: playOptionsParams?): Animation
-    local anim = AnimationService:Play(char, animationId, playOptions)
+    local anim = AnimationPlayer:Play(char, animationId, playOptions)
     self:AddAnimation(anim)
 
     return anim
@@ -120,12 +122,12 @@ end
 
 function ActionSession:StopAnimation(animation: Animation)
     TableUtils:ArrayRemove(self.animations, animation)
-    AnimationService:StopAnimation(animation)
+    AnimationPlayer:StopAnimation(animation)
 end
 
 function ActionSession:StopAllAnimations()
     for _, anim in ipairs(self.animations) do
-        AnimationService:StopAnimation(anim)
+        AnimationPlayer:StopAnimation(anim)
     end
     self.animations = {}
 end
@@ -144,6 +146,16 @@ function ActionSession:RemoveStatesTo(target: Model, states)
     for _, state in ipairs(states) do 
         StateManager.RemoveState(target, state)
     end
+end
+
+function ActionSession:BulkAddConnections(connections: {RBXScriptConnection})
+    for _, connection in connections do
+        table.insert(self.connections, connection)
+    end
+end
+
+function ActionSession:AddConnection(connection: RBXScriptConnection)
+    table.insert(self.connections, connection)
 end
 
 function ActionSession:Start()
@@ -188,6 +200,10 @@ function ActionSession:Stop(forcestop: boolean?)
             self:RemoveStatesTo(target, self.states.sharedStates)
             self:RemoveStatesTo(target, self.states.targetStates)
         end
+    end
+
+    for _, connection in ipairs(self.connections) do
+        connection:Disconnect()
     end
 
     if self.extraStopFunction then

@@ -25,6 +25,30 @@ type speedDebuffParams = {
 
 local charStates = {}
 
+local function getOrInitState(char: Model, humanoid: Humanoid)
+    if not charStates[char] then
+        charStates[char] = {
+            originalSpeed = humanoid.WalkSpeed,
+            originalJump = humanoid.JumpHeight,
+            originalAutoRotate = humanoid.AutoRotate,
+            currentPriority = -1,
+            stopCurrent = nil,
+            diedConn = nil,
+        }
+    end
+    return charStates[char]
+end
+
+local function bindDied(char: Model, humanoid: Humanoid, state)
+    if state.diedConn then
+        state.diedConn:Disconnect()
+        state.diedConn = nil
+    end
+    state.diedConn = humanoid.Died:Connect(function()
+        charStates[char] = nil
+    end)
+end
+
 function StunService:Stun(char: Model, params: stunParams): () -> ()
     if not char then return function() end end
     local humanoid: Humanoid = char:FindFirstChild("Humanoid")
@@ -35,25 +59,16 @@ function StunService:Stun(char: Model, params: stunParams): () -> ()
     local time = params.stunDuration
     local canRotate = params.canRotate
 
-    if not charStates[char] then
-        charStates[char] = {
-            originalSpeed = humanoid.WalkSpeed,
-            originalJump = humanoid.JumpHeight,
-            originalAutoRotate = humanoid.AutoRotate,
-            currentPriority = -1,
-            stopCurrent = nil
-        }
-    end
+    local state = getOrInitState(char, humanoid)
 
-    if charStates[char].currentPriority > priority then
+    if state.currentPriority > priority then
         return function() end
     end
 
-    if charStates[char].stopCurrent then
-        charStates[char].stopCurrent = nil
-    end
+    state.stopCurrent = nil
+    state.currentPriority = priority
 
-    charStates[char].currentPriority = priority
+    bindDied(char, humanoid, state)
 
     humanoid.WalkSpeed = speed
     humanoid.JumpHeight = 0
@@ -62,26 +77,19 @@ function StunService:Stun(char: Model, params: stunParams): () -> ()
     end
     StateManager.SetState(char, "Stunned", true)
 
-    local diedConn
-    diedConn = humanoid.Died:Connect(function()
-        charStates[char] = nil
-        diedConn:Disconnect()
-    end)
-
     local function stopStun()
         if not charStates[char] then return end
+        if charStates[char].stopCurrent ~= stopStun then return end
 
-        if charStates[char].stopCurrent == stopStun then
-            StateManager.RemoveState(char, "Stunned")
-            humanoid.JumpHeight = charStates[char].originalJump
-            humanoid.WalkSpeed = charStates[char].originalSpeed
-            humanoid.AutoRotate = charStates[char].originalAutoRotate
-            charStates[char].currentPriority = -1
-            charStates[char].stopCurrent = nil
-        end
+        StateManager.RemoveState(char, "Stunned")
+        humanoid.JumpHeight = charStates[char].originalJump
+        humanoid.WalkSpeed = charStates[char].originalSpeed
+        humanoid.AutoRotate = charStates[char].originalAutoRotate
+        charStates[char].currentPriority = -1
+        charStates[char].stopCurrent = nil
     end
 
-    charStates[char].stopCurrent = stopStun
+    state.stopCurrent = stopStun
 
     task.delay(time, stopStun)
     return stopStun
@@ -96,44 +104,29 @@ function StunService:SpeedDebuff(char: Model, params: speedDebuffParams): () -> 
     local priority = params.priority
     local time = params.duration
 
-    if not charStates[char] then
-        charStates[char] = {
-            originalSpeed = humanoid.WalkSpeed,
-            originalJump = humanoid.JumpHeight,
-            originalAutoRotate = humanoid.AutoRotate,
-            currentPriority = -1,
-            stopCurrent = nil
-        }
-    end
+    local state = getOrInitState(char, humanoid)
 
-    if charStates[char].currentPriority > priority then
+    if state.currentPriority > priority then
         return function() end
     end
 
-    if charStates[char].stopCurrent then
-        charStates[char].stopCurrent = nil
-    end
+    state.stopCurrent = nil
+    state.currentPriority = priority
 
-    charStates[char].currentPriority = priority
+    bindDied(char, humanoid, state)
+
     humanoid.WalkSpeed = speed
-
-    local diedConn
-    diedConn = humanoid.Died:Connect(function()
-        charStates[char] = nil
-        diedConn:Disconnect()
-    end)
 
     local function stopDebuff()
         if not charStates[char] then return end
+        if charStates[char].stopCurrent ~= stopDebuff then return end
 
-        if charStates[char].stopCurrent == stopDebuff then
-            humanoid.WalkSpeed = charStates[char].originalSpeed
-            charStates[char].currentPriority = -1
-            charStates[char].stopCurrent = nil
-        end
+        humanoid.WalkSpeed = charStates[char].originalSpeed
+        charStates[char].currentPriority = -1
+        charStates[char].stopCurrent = nil
     end
 
-    charStates[char].stopCurrent = stopDebuff
+    state.stopCurrent = stopDebuff
 
     task.delay(time, stopDebuff)
     return stopDebuff

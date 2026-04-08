@@ -45,7 +45,7 @@ function CharacterHUDController:_HandleMoveChanges(data)
 end
 
 function CharacterHUDController:_HandleUltimateChange(ultimateTitle: string, ultimateValue: number)
-    Title.Text = ultimateTitle
+    Title.Text = ultimateTitle or "Placeholder"
     
     local x_size = math.lerp(0, CONFIG.ULTIMATE_MAX_X_VALUE, ultimateValue / 100)
     Fill.Size = UDim2.fromScale(x_size, Fill.Size.Y.Scale)

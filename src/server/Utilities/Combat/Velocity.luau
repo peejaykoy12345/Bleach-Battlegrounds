@@ -49,7 +49,7 @@ function Velocity.CreateLV(parent: Instance, params: LinearVelocityParams)
 	local lv = Instance.new("LinearVelocity")
 	lv.MaxForce = params.MaxForce or 40000
 	lv.VelocityConstraintMode = Enum.VelocityConstraintMode.Vector
-	lv.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
+	lv.RelativeTo = Enum.ActuatorRelativeTo.World
 	lv.VectorVelocity = params.Velocity
 	lv.Attachment0 = params.Attachment or att
 	lv.Name = params.Name or "LinearVelocity"

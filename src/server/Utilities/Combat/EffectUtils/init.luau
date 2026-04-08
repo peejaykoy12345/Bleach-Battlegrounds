@@ -66,6 +66,8 @@ function EffectUtils:ApplyEffect(target: Model, effectName: effects, duration: n
     activeEffects[target][effectName].Timer.timeout:Connect(function()
         EffectUtils:RemoveEffect(target, effectName)
     end)
+
+    activeEffects[target][effectName].Timer:Start()
 end
 
 function EffectUtils:RemoveEffect(target: Model, effectName: effects)

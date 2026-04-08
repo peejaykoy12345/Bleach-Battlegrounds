@@ -1,10 +1,14 @@
+local Debris = game:GetService("Debris")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local ServicesFolder = ServerScriptService.Server.Services
 local CharacterService = require(ServicesFolder.CharacterService)
 local CooldownService = require(ServicesFolder.CooldownService)
 local ClientFXService = require(ServicesFolder.ClientFXService)
-local AnimationService = require(ServicesFolder.AnimationService)
+local AnimationPlayer = require(ReplicatedStorage.Shared.Modules.Utilities.AnimationPlayer)
+local StunService = require(ServicesFolder.StunService)
+local SoundPlayer = require(ReplicatedStorage.Shared.Modules.Utilities.SoundPlayer)
 
 local UtilitiesFolder = ServerScriptService.Server.Utilities
 local CombatUtils = UtilitiesFolder.Combat

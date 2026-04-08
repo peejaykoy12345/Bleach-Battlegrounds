@@ -30,12 +30,14 @@ export type CreateHitboxConfig = {
 	UseClient: Player?,
 	WeldedPart: Part?,
 	WeldOffsetCFrame: CFrame?, 
+	DebounceTime: number?,
 }
 
 function MoveUtils:CreateHitbox(custom_config: CreateHitboxConfig)
 	local config = {
 		SizeOrPart = custom_config.SizeOrPart or Vector3.new(4, 4, 4),
 		UseClient = custom_config.UseClient,
+		DebounceTime = custom_config.DebounceTime,
 		Debug = custom_config.Debug ~= false,
 	}
 
@@ -173,6 +175,16 @@ function MoveUtils:ValidateHit(attacker, target, params: ValidateHitParams?): bo
 	end
 
 	return true
+end
+
+function MoveUtils:ConnectAnimationMarkers(track: AnimationTrack, markers: {[string]: () -> ()})
+	local connections = {}
+	for markerName, markerCallback in pairs(markers) do
+		local connection = track:GetMarkerReachedSignal(markerName):Connect(markerCallback)
+		table.insert(connections, connection)
+	end
+
+	return connections
 end
 
 return MoveUtils
