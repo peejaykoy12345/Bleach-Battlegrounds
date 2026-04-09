@@ -79,7 +79,7 @@ function Kick.Run(char, params)
             sharedStates = {"CantUse"}
         },
         properties = {
-            sharedProperties = {
+            targetProperties = {
                 AutoRotate = false,
             }
         }
@@ -92,6 +92,8 @@ function Kick.Run(char, params)
     local track: AnimationTrack = session:PlayAndAddAnimation(char, ASSETS.ANIMATIONS.ATTACKER)
 
     local lv = Velocity.CreateLV(hrp, {RelativeTo = "Attachment", Velocity = Vector3.new(0, 0, -1) * 50})
+    lv.ForceLimitMode = Enum.ForceLimitMode.PerAxis
+    lv.MaxAxesForce = Vector3.new(math.huge, 0, math.huge)
 
     local conn = track.Stopped:Connect(function()
         session:Stop()
@@ -103,9 +105,7 @@ function Kick.Run(char, params)
 
         if lv then
             local mass = MoveUtils:GetModelMass(hitChar)
-            print("Old velocity:", lv.VectorVelocity)
             lv.VectorVelocity = lv.VectorVelocity + Vector3.new(0, 0, -1) * mass
-            print("New velocity: ", lv.VectorVelocity)
         end
     end
 
