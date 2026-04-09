@@ -19,7 +19,7 @@ function MoveUtils:CreateStandardHitbox(config)
 	local hitbox = Hitbox.CreateHitbox()
 	hitbox.Size = config.SIZE or Vector3.new(4, 4, 4)
 	hitbox.CFrame = config.CFrame or CFrame.new(0, 0, 0)
-	hitbox.Visualizer = config.VISUALIZER ~= false 
+	hitbox.Visualizer =  false --config.VISUALIZER ~= false 
 	return hitbox
 end
 
@@ -39,7 +39,7 @@ function MoveUtils:CreateHitbox(custom_config: CreateHitboxConfig)
 		SizeOrPart = custom_config.SizeOrPart or Vector3.new(4, 4, 4),
 		UseClient = custom_config.UseClient,
 		DebounceTime = custom_config.DebounceTime,
-		Debug = custom_config.Debug ~= false,
+		Debug = false, --custom_config.Debug ~= false,
 		VelocityPredictionFactor = custom_config.VelocityPredictionFactor
 	}
 

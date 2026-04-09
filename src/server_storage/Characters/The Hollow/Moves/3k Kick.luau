@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local ServicesFolder = ServerScriptService.Server.Services
+local Velocity = require(ServerScriptService.Server.Utilities.Combat.Velocity)
 local CharacterService = require(ServicesFolder.CharacterService)
 local CooldownService = require(ServicesFolder.CooldownService)
 local ClientFXService = require(ServicesFolder.ClientFXService)
@@ -28,11 +29,14 @@ local CONFIG = {
 
 local ASSETS = {
     ANIMATIONS = {
-        ATTACKER = 97991718036713,
+        ATTACKER = 104295996856823,
+    },
+    VFX = {
+        HIT = ReplicatedStorage["Assets (New)"].Gabi["Triple Kick"]
     }
 }
 
-function Kick.CreateHitbox(session, hrp, onTouched)
+function Kick.CreateHitbox(session, hrp, onTouched, debounce)
     local plr = Players:GetPlayerFromCharacter(session.attacker)
     if not plr then return end
 
@@ -42,18 +46,20 @@ function Kick.CreateHitbox(session, hrp, onTouched)
         SizeOrPart = Vector3.new(6, 6, 6),
         WeldedPart = hrp,
         WeldOffsetCFrame = hitboxOffset,
-        DebounceTime = 0.1,
-        UseClient = plr,
+        DebounceTime = debounce,
+        --UseClient = plr,
     })
 
-    session.hitbox = hb
+    table.insert(session.hitboxes, hb)
 
     hb.HitSomeone:Connect(function(hitChars)
         for _, hitChar in ipairs(hitChars) do
             if not MoveUtils:ValidateHit(session.attacker, hitChar, {Block = {Blockable = true}}) then continue end
+            local ehrp = hitChar:FindFirstChild("HumanoidRootPart")
+            if not ehrp then return end
 
             session:InitTarget(hitChar)
-            onTouched(hitChar)
+            onTouched(hitChar, ehrp)
         end
     end)
 
@@ -62,19 +68,19 @@ end
 
 function Kick.Run(char, params)
     if not MoveUtils:CanPerformAction(char, script.Name) then return end -- Checks for cooldowns and states
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
 
-    print(script.Name, " is in dev!")
-
-    --[[local session = ActionSession.new({
+    local session = ActionSession.new({
         attacker = char,
         actionName = script.Name,
         actionType = "Default",
         states = {
-            attackerStates = {"CantUse"}
+            sharedStates = {"CantUse"}
         },
         properties = {
             sharedProperties = {
-                
+                AutoRotate = false,
             }
         }
     })
@@ -82,10 +88,60 @@ function Kick.Run(char, params)
     if not session then return end
 
     session:Start()
-    
-    CooldownService:SetCooldown(char, script.Name, 1)]]
 
-    CharacterService:AddUltimateValue(char, 20)
+    local track: AnimationTrack = session:PlayAndAddAnimation(char, ASSETS.ANIMATIONS.ATTACKER)
+
+    local lv = Velocity.CreateLV(hrp, {RelativeTo = "Attachment", Velocity = Vector3.new(0, 0, -1) * 50})
+
+    local conn = track.Stopped:Connect(function()
+        session:Stop()
+    end)
+
+    local function onWeldTouched(hitChar, ehrp)
+        local weld = session:WeldParts(hrp, ehrp, "Weld")
+        weld.C1 = CFrame.new(0, 0, -3) * CFrame.Angles(0, math.rad(180), 0)
+
+        if lv then
+            local mass = MoveUtils:GetModelMass(hitChar)
+            print("Old velocity:", lv.VectorVelocity)
+            lv.VectorVelocity = lv.VectorVelocity + Vector3.new(0, 0, -1) * mass
+            print("New velocity: ", lv.VectorVelocity)
+        end
+    end
+
+    local function onTouched(hitChar, ehrp)
+        DamageUtils:ValidateAndDamage(char, hitChar, CONFIG.DAMAGE)
+        CharacterService:AddUltimateValue(char, 2)
+
+        ClientFXService:Start(
+            {
+            Name = "EmitParticles",
+            Type = "Combat",
+            },
+            {
+                parent = ehrp,
+                particleContainer = ASSETS.VFX.HIT,
+            }
+        )
+    end
+
+    local markers = {
+        ["KickStart"] = function()
+            Kick.CreateHitbox(session, hrp, onWeldTouched)
+            Kick.CreateHitbox(session, hrp, onTouched, 0.1)
+        end
+    }
+
+    local connections = MoveUtils:ConnectAnimationMarkers(track, markers)
+
+    session:AddConnection(conn)
+    session:BulkAddConnections(connections)
+    
+    session.extraStopFunction = function()
+        CooldownService:SetCooldown(char, script.Name, 1)
+       lv:Destroy()
+       lv = nil
+    end
 end
 
 return Kick

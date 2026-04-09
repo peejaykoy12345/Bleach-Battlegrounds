@@ -35,7 +35,8 @@ type LinearVelocityParams = {
 	Attachment: Attachment?,
 	MaxForce: number?,
 	Lifetime: number?,
-	Name: string?
+	Name: string?,
+	RelativeTo: "World" | "Attachment"?,
 }
 
 function Velocity.ParentAndCreateAttachment(parent: Instance)
@@ -47,9 +48,9 @@ function Velocity.CreateLV(parent: Instance, params: LinearVelocityParams)
 	local att = Velocity.ParentAndCreateAttachment(parent)
 
 	local lv = Instance.new("LinearVelocity")
-	lv.MaxForce = params.MaxForce or 40000
+	lv.MaxForce = params.MaxForce or math.huge
 	lv.VelocityConstraintMode = Enum.VelocityConstraintMode.Vector
-	lv.RelativeTo = Enum.ActuatorRelativeTo.World
+	lv.RelativeTo = if params.RelativeTo == "World" then Enum.ActuatorRelativeTo.World elseif params.RelativeTo == "Attachment" then Enum.ActuatorRelativeTo.Attachment0 else Enum.ActuatorRelativeTo.World
 	lv.VectorVelocity = params.Velocity
 	lv.Attachment0 = params.Attachment or att
 	lv.Name = params.Name or "LinearVelocity"
